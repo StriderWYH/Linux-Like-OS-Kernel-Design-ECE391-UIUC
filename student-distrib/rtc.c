@@ -25,7 +25,7 @@ void rtc_interrupt_handler()
     outb(REGISTER_C,RTC_PORT);  //select register C
     inb(CMOS_PORT); //throw away content
     enable_irq(RTC_IRQ);
-
+    printf("rtc_handler succuss!")
 }
 
 // /*
