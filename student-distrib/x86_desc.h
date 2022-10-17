@@ -22,6 +22,14 @@
 /* Number of vectors in the interrupt descriptor table (IDT) */
 #define NUM_VEC     256
 
+//vva macro declare*************************************************************************************************
+#define num_PDE     1024
+#define num_PTE     1024
+#define size_of_each_PT_DE      0x1000
+
+
+
+//************************************************************
 #ifndef ASM
 
 /* This structure is used to load descriptor base registers

@@ -13,6 +13,7 @@ void keyboard_interrupt_handler();
 
 
 
+<<<<<<< HEAD
 unsigned char scancode[58] = 
 {
     0 ,'`' , '1' , '2' , '3' , '4' , '5' , '6' , '7' , '8' , '9' , '0' , '-' , '=' , 8 , 0 ,
@@ -22,3 +23,8 @@ unsigned char scancode[58] =
 };
 
 #endif
+=======
+
+
+#endif
+>>>>>>> vva

@@ -11,7 +11,14 @@
 .globl tss, tss_desc_ptr, ldt, ldt_desc_ptr
 .globl gdt_ptr
 .globl idt_desc_ptr, idt
+.globl gdt_desc_ptr
 
+
+
+# vva variables declare:***************************************************
+.globl	PDE_TABLE, PTE_TABLE
+.globl PDE_TABLE_bottom,PTE_TABLE_bottom 
+#*******************************************************************
 .align 4
 
 
@@ -85,6 +92,14 @@ ldt_desc_ptr:
 gdt_bottom:
 
     .align 16
+
+gdt_desc_ptr:
+    .word gdt_bottom - gdt - 1
+    .long gdt
+
+
+    .align  16
+
 ldt:
     .rept 4
     .quad 0
@@ -106,3 +121,22 @@ _idt:
     .endr
 
 idt_bottom:
+
+    
+#vva variable:
+.align	size_of_each_PT_DE  #align the table
+#define PDE
+PDE_TABLE:
+_PDE_TABLE:
+    .rept 1024      #num of table is 1024
+    .long 0x0       #32bit each entry
+    .endr
+PDE_TABLE_bottom:
+#define PTE
+PTE_TABLE:
+_PTE_TABLE:
+    .rept 1024      #num of table is 1024
+    .long 0x0       #32bit each entry
+    .endr
+PTE_TABLE_bottom:
+

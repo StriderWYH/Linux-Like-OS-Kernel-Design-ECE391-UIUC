@@ -21,6 +21,14 @@ typedef unsigned short uint16_t;
 typedef char int8_t;
 typedef unsigned char uint8_t;
 
+//vva declare **************************************************************************************************
+typedef struct PDE_4MB PDE_4MB;
+typedef struct PDE_4KB PDE_4KB;
+typedef struct PTE PTE;
+typedef union PDE PDE;
+//**************************************************************************************************************
+
+
 #endif /* ASM */
 
 #endif /* _TYPES_H */
