@@ -1,15 +1,6 @@
 #include "keyboard.h"
 #include "lib.h"
 #include "i8259.h"
-<<<<<<< HEAD
-
-
-void keyboard_init()
-{
-    enable_irq(KEYBOARD_IRQ);
-}
-
-=======
 int i = 0;
 unsigned int pre = 0;
 
@@ -38,18 +29,10 @@ void keyboard_init()
  * input: none
  * output: none
  */
->>>>>>> vva
 void keyboard_interrupt_handler()
 {
     unsigned int key;
     unsigned int value;
-<<<<<<< HEAD
-    send_eoi(KEYBOARD_IRQ);
-    key = inb(KETBOARD_PORT) & 0xFF;    //low 8 bits 
-    value = scancode[key];
-    putc(value);
-}
-=======
     //printf("keyboard handler \n");  
     
     key = inb(KETBOARD_PORT) & 0xFF;    //low 8 bits 
@@ -63,4 +46,3 @@ void keyboard_interrupt_handler()
     i++;    //when i is even, it's the signal of pressing, when i is odd, it's the signal of releasing
     pre = value;
 }
->>>>>>> vva
