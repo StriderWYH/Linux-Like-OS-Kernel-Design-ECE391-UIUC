@@ -263,7 +263,7 @@ void launch_tests(){
 	//TEST_OUTPUT("Kernel_paging_test", Kernel_paging_test());
 	//TEST_OUTPUT("kernel_paging_out_test", kernel_paging_out_test());
 
-	PagingFault_test();
+	// PagingFault_test();
 
 	// launch your tests here
 }
