@@ -2,7 +2,8 @@
 #include "lib.h"
 #include "i8259.h"
 
-char keyboard_buffer[128];
+char keyboard_buffer[BUFFERSIZE];
+char buffer[BUFFERSIZE];
 int index = 0;
 unsigned int status_shift = 0;  //0 for release, 1 for press
 unsigned int status_ctrl = 0;   //0 for release, 1 for press
@@ -151,6 +152,7 @@ void keyboard_interrupt_handler()
 
 //////////////////////////////////////////////////////
 int terminal_open(char* buffer, int nbytes){
+    update_cursor(0);
     return 0;
 }
 
@@ -159,9 +161,49 @@ int terminal_close(char* buffer, int nbytes){
 }
 
 int terminal_read(char* buffer, int nbytes){
-    
+    int byte_read = 0;
+    int i = 0;
+
+
+    /////////////////// Maybe space for enter actions
+    //putc((int)('\n')); // change the line
+    change_line();
+    update_cursor(0);
+
+
+    /////////////////// Maybe space for enter actions
+
+    for(i = 0; i < nbytes; i++){
+        /*
+        if(keyboard_buffer[i] == '\n'){ // when the enter is detected, end reading
+            keyboard_buffer[i] = '\0';
+            break;
+        }
+        */
+        if(i >= 128){    // check for overflow
+            keyboard_buffer[i] = '\0';
+            break;
+        }
+        buffer[i] = keyboard_buffer[i];
+        byte_read += 1;
+        keyboard_buffer[i] = '\0'; // clear the buffer
+    }
+    return byte_read;
 }
 
 int terminal_write(char* buffer, int nbytes){
-    
+    int byte_write = 0;
+    int i = 0;
+
+
+    for(i = 0; i < nbytes; i++){
+        if(buffer[i] == '\0'){
+            break;
+        }
+        putc(buffer[i]);
+        byte_write += 1;
+        buffer[i] = '\0'; // clear the buffer
+        update_cursor(1); // update the cursor by one place        
+    }
+    return byte_write;
 }

@@ -7,6 +7,7 @@
 #define KEYBOARD_PORT   0x60
 #define KEYBOARD_CMD   0x64
 
+#define BUFFERSIZE 128
 
 #define TAB     0x0F
 #define CAPS    0x3A
