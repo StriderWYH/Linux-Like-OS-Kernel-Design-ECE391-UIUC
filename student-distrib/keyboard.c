@@ -9,6 +9,9 @@ unsigned int status_shift = 0;  //0 for release, 1 for press
 unsigned int status_ctrl = 0;   //0 for release, 1 for press
 unsigned int status_caps = 0;   //0 for unlock, 1 for lock
 /*this is a scan_code table, which is used for search each key's ASCII by index*/
+
+
+//int keyboard_length = 0;
 unsigned char scancode_lower[58] = 
 {
     0,0,'1','2','3','4','5','6','7','8','9','0','-','=',
@@ -100,6 +103,25 @@ void keyboard_interrupt_handler()
         {
             clean_screen();
         }
+        if (key == ENTER)
+        {
+            //terminal_read(index);
+            terminal_write(terminal_read(index));
+        }
+        if (key == BACKSPACE)
+        {
+            int old_index = index;
+            keyboard_buffer[index--] = '\0';
+            if ((index <= 79) && (old_index >= 80))
+            {
+                change_line(-1);
+            }
+            update_cursor(0);
+            ///////////////////////////
+
+            ///////////////////////////
+        }
+        
         if ((status_caps==0)&&(status_shift==0))
         {
             value = scancode_lower[key];
@@ -125,29 +147,28 @@ void keyboard_interrupt_handler()
         if (index <= 127)
         {
             keyboard_buffer[index++] = value;
-            putc(value);
+            print_stuff(value);
+            //putc(value);
         }
         
 
 
-    }
-    
-    
-    
-    
+    } 
         
     send_eoi(KEYBOARD_IRQ);
 }
 
-
-
-
-
-
-
-
-
-
+void print_stuff(value){
+    if(index <= 80 - 1){ // check whether the buffer has filled a row
+        putc(value);
+        update_cursor(1);
+    }
+    else{
+        change_line(1);
+        putc(value);
+        update_cursor(0);  // the offset is not sure
+    }
+}
 
 
 //////////////////////////////////////////////////////
@@ -160,14 +181,14 @@ int terminal_close(char* buffer, int nbytes){
     return 0;
 }
 
-int terminal_read(char* buffer, int nbytes){
+int terminal_read(int nbytes){
     int byte_read = 0;
     int i = 0;
 
 
     /////////////////// Maybe space for enter actions
     //putc((int)('\n')); // change the line
-    change_line();
+    change_line(1);
     update_cursor(0);
 
 
@@ -188,16 +209,18 @@ int terminal_read(char* buffer, int nbytes){
         byte_read += 1;
         keyboard_buffer[i] = '\0'; // clear the buffer
     }
+    buffer[nbytes] = '\n';
+    index = 0;
     return byte_read;
 }
 
-int terminal_write(char* buffer, int nbytes){
+int terminal_write(int nbytes){
     int byte_write = 0;
     int i = 0;
 
 
     for(i = 0; i < nbytes; i++){
-        if(buffer[i] == '\0'){
+        if(buffer[i] == '\n'){
             break;
         }
         putc(buffer[i]);

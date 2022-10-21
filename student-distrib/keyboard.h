@@ -17,16 +17,19 @@
 #define RSHIFT_RELEASE  0xB6
 #define CTRL_PRESS      0x1D
 #define CTRL_RELEASE    0x9D
-
+#define BACKSPACE       0x0E
+#define ENTER           0x1C
 void special_button_status(unsigned int key);
 
 void keyboard_init();
 
 void keyboard_interrupt_handler();
 
+void print_stuff(int value);
+
 int terminal_open(char* buffer, int nbytes);
 int terminal_close(char* buffer, int nbytes);
-int terminal_read(char* buffer, int nbytes);
-int terminal_write(char* buffer, int nbytes);
+int terminal_read(int nbytes);
+int terminal_write(int nbytes);
 #endif
 

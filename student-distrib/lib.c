@@ -559,13 +559,25 @@ void clean_screen(void){
     }
     
 }
-
-void change_line(){
-    screen_x = 0;
-    if(screen_y != NUM_ROWS - 1){
-        screen_y += 1;
+// if choice == 1, that means go down by 1 line; if choice == -1, that means go up by one line
+void change_line(int choice){
+    if(choice == 1){
+        screen_x = 0;
+        if(screen_y != NUM_ROWS - 1){
+            screen_y += 1;
+        }
+        else{
+            scrolling();
+        }
     }
-    else{
-        scrolling();
+    else if(choice == -1){
+        if((screen_x == 0) & (screen_y > 0)){
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+            screen_x = NUM_COLS - 1; 
+            screen_y -= 1;
+        }
+        
     }
+    return;
 }
