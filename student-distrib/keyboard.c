@@ -2,6 +2,7 @@
 #include "lib.h"
 #include "i8259.h"
 
+char keyboard_buffer[128];
 /*this is a scan_code table, which is used for search each key's ASCII by index*/
 unsigned char scancode[58] = 
 {
