@@ -560,3 +560,12 @@ void clean_screen(void){
     
 }
 
+void change_line(){
+    screen_x = 0;
+    if(screen_y != NUM_ROWS - 1){
+        screen_y += 1;
+    }
+    else{
+        scrolling();
+    }
+}

@@ -42,6 +42,8 @@ void update_cursor(int offset);
 void scrolling(void);
 uint16_t get_cursor_position(void);
 void clean_screen(void);
+void change_line(void);
+
 /* Port read functions */
 /* Inb reads a byte and returns its value as a zero-extended 32-bit
  * unsigned int */
