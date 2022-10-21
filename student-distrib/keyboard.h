@@ -4,7 +4,8 @@
 #include "types.h"
 
 #define KEYBOARD_IRQ    1
-#define KETBOARD_PORT   0x60
+#define KEYBOARD_PORT   0x60
+#define KEYBOARD_CMD   0x64
 
 
 void keyboard_init();
