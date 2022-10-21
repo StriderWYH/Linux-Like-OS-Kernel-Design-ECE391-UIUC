@@ -59,18 +59,18 @@ void keyboard_interrupt_handler()
 
 
 //////////////////////////////////////////////////////
-int terminal_open(){
-
+int terminal_open(char* buffer, int nbytes){
+    return 0;
 }
 
-int terminal_close(){
+int terminal_close(char* buffer, int nbytes){
+    return 0;
+}
+
+int terminal_read(char* buffer, int nbytes){
     
 }
 
-int terminal_read(){
-    
-}
-
-int terminal_write(){
+int terminal_write(char* buffer, int nbytes){
     
 }
