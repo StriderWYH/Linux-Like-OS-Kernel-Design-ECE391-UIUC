@@ -474,3 +474,89 @@ void test_interrupts(void) {
         video_mem[i << 1]++;
     }
 }
+
+
+////////////////////////////////////////////////////////////////////////////
+// the function below is written by me for cursor
+void enable_cursor(uint8_t cursor_start, uint8_t cursor_end)
+{
+    outb(0x0A, 0x3D4);
+
+	//outb(0x3D5, (inb(0x3D5) & 0xC0) | cursor_start);
+	outb((inb(0x3D5) & 0xC0) | cursor_start, 0x3D5);
+ 
+	//outb(0x3D4, 0x0B);
+    outb(0x0B, 0x3D4);
+
+	//outb(0x3D5, (inb(0x3D5) & 0xE0) | cursor_end);
+    outb((inb(0x3D5) & 0xE0) | cursor_end, 0x3D5);
+}
+
+void disable_cursor()
+{
+	//outb(0x3D4, 0x0A);
+    outb(0x0A, 0x3D4);
+	//outb(0x3D5, 0x20);
+    outb(0x20, 0x3D5);
+}
+
+void update_cursor(int offset)
+{
+	uint16_t pos = NUM_COLS * screen_y + screen_x + offset; /// the offset is not sure
+    //*(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
+    //*(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+ 
+	//outb(0x3D4, 0x0F);
+    outb(0x0F, 0x3D4);
+	//outb(0x3D5, (uint8_t) (pos & 0xFF));
+    outb((uint8_t) (pos & 0xFF), 0x3D5);
+	//outb(0x3D4, 0x0E);
+    outb(0x0E, 0x3D4);
+    //outb(0x3D5, (uint8_t) ((pos >> 8) & 0xFF));
+    outb((uint8_t) ((pos >> 8) & 0xFF), 0x3D5);
+	
+}
+
+uint16_t get_cursor_position(void)
+{
+    uint16_t pos = 0;
+    //outb(0x3D4, 0x0F);
+    outb(0x0F, 0x3D4);
+    pos |= inb(0x3D5);
+    //outb(0x3D4, 0x0E);
+    outb(0x0E, 0x3D4);
+    pos |= ((uint16_t)inb(0x3D5)) << 8;
+    return pos;
+}
+
+void scrolling(void){
+    int x,y;
+    for (y = 1; y < NUM_COLS; y++){
+        for (x = 0; x < NUM_COLS; x++){
+            *(uint8_t *)(video_mem + ((NUM_COLS * (y - 1) + x) << 1)) = *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1));
+            //*(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        }
+    }
+
+    for (x = 0; x < NUM_COLS; x++){
+        *(uint8_t *)(video_mem + ((NUM_COLS * (NUM_ROWS-1) + x) << 1)) = ' ';
+        *(uint8_t *)(video_mem + ((NUM_COLS * (NUM_ROWS-1) + x) << 1) + 1) = ATTRIB;
+    }
+    screen_y -= 1;   // this is not sure
+}
+
+void clean_screen(void){
+    screen_x = 0;
+    screen_y = 0;
+    update_cursor(0);
+    int x,y;
+    for (y = 0; y < NUM_COLS; y++){
+        for (x = 0; x < NUM_COLS; x++){
+            *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1)) = ' ';
+            *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1) + 1) = ATTRIB;
+            //*(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+        }
+    }
+    
+}
+

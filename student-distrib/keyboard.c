@@ -3,7 +3,9 @@
 #include "i8259.h"
 int i = 0;
 unsigned int pre = 0;
-
+/////////////////////
+char keyboard_buffer[128];
+/////////////////////
 /*this is a scan_code table, which is used for search each key's ASCII by index*/
 unsigned char scancode[58] = 
 {
@@ -45,4 +47,32 @@ void keyboard_interrupt_handler()
     send_eoi(KEYBOARD_IRQ);
     i++;    //when i is even, it's the signal of pressing, when i is odd, it's the signal of releasing
     pre = value;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////
+int terminal_open(){
+
+}
+
+int terminal_close(){
+    
+}
+
+int terminal_read(){
+    
+}
+
+int terminal_write(){
+    
 }

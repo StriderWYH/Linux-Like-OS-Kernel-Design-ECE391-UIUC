@@ -30,6 +30,18 @@ int32_t safe_strncpy(int8_t* dest, const int8_t* src, int32_t n);
 
 
 void test_interrupts(void);
+
+
+
+
+/// the function bewlow is declared by me
+
+void enable_cursor(uint8_t cursor_start, uint8_t cursor_end);
+void disable_cursor();
+void update_cursor(int offset);
+void scrolling(void);
+uint16_t get_cursor_position(void);
+void clean_screen(void);
 /* Port read functions */
 /* Inb reads a byte and returns its value as a zero-extended 32-bit
  * unsigned int */
