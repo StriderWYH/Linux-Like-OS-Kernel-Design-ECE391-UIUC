@@ -8,6 +8,17 @@
 #define KEYBOARD_CMD   0x64
 
 
+#define TAB     0x0F
+#define CAPS    0x3A
+#define LSHIFT_PRESS    0x2A
+#define LSHIFT_RELEASE  0xAA
+#define RSHIFT_PRESS    0x36
+#define RSHIFT_RELEASE  0xB6
+#define CTRL_PRESS      0x1D
+#define CTRL_RELEASE    0x9D
+
+void special_button_status(unsigned int key);
+
 void keyboard_init();
 
 void keyboard_interrupt_handler();

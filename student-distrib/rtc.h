@@ -16,4 +16,9 @@ extern void rtc_init();
 extern void rtc_interrupt_handler();
 extern int get_interrupt_rate(int frequency);
 extern void set_frequency(int rate);
+
+int RTC_open();
+int RTC_close();
+int RTC_read();
+int RTC_write(void* buffer);
 #endif
