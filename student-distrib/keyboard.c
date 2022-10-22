@@ -66,6 +66,7 @@ void special_button_status(unsigned int key)
     if (key == CAPS)
     {
         status_caps = ~status_caps;
+        status_caps = status_caps & 0X01;
         special_change = 1;
     }
     if (key == CTRL_PRESS)
@@ -105,12 +106,15 @@ void keyboard_interrupt_handler()
     unsigned int value;
     key = 0;
     key = inb(KEYBOARD_PORT) & 0xFF;    //low 8 bits
+
     special_button_status(key);
     if (key>=0 && key<=57)
     {
-        if ((status_ctrl==1)&&(key = 'l'))
+        if ((status_ctrl==1) && (key == 0x26))  //scancode of 'l' is 0x26
         {
             clean_screen();
+            send_eoi(KEYBOARD_IRQ);
+            return;
         }
         if (key == ENTER)
         {
@@ -151,6 +155,7 @@ void keyboard_interrupt_handler()
         }
         if ((status_caps==1)&&(status_shift==0))
         {
+            
             value = scancode_caps_only[key];
         }
         if ((status_caps==0)&&(status_shift==1))
@@ -159,7 +164,7 @@ void keyboard_interrupt_handler()
         }
         if ((status_caps==1)&&(status_shift==1))
         {
-            value = scancode_shift_caps[key];
+            value = scancode_shift_caps[key];  
         }
         
         if (value == '\0')
@@ -174,7 +179,6 @@ void keyboard_interrupt_handler()
             print_stuff(value);
             //putc(value);
         }
-        
     } 
         
     send_eoi(KEYBOARD_IRQ);

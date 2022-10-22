@@ -30,6 +30,7 @@ void rtc_interrupt_handler()
     
     outb(REGISTER_C,RTC_PORT);  //select register C
     inb(RTC_DATA_PORT); //throw away content
+    RTC_interrupt = 1;
     //test_interrupts();
     send_eoi(RTC_IRQ);
 }
