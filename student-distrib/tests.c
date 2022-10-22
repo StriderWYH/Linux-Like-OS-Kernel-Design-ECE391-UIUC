@@ -231,11 +231,30 @@ void syscall_test() {
  * Side Effects: rtc interrupts enabled
  */
  
-int rtc_test() {
+void rtc_test() 
+{
 	TEST_HEADER;
-	rtc_interrupt_handler();
+	int i = 0;
+	int index_ds = 0;
+	int buffer_1[1];
+	buffer_1[0] = 2;
+	RTC_open();
+	while(1){
+		
+		RTC_write(buffer_1);
+		RTC_read();
+		index_ds++;
+		print_stuff(122,index_ds);
+		if((buffer_1[0] < 1024) && (i % 20 == 0))
+		{
+			buffer_1[0] = (buffer_1[0]) * 2;
+		}
+		i++;
+	}
+	RTC_close();
+	//rtc_interrupt_handler();
 
-	return PASS;
+	//return PASS;
 }
 
 
@@ -244,7 +263,7 @@ int rtc_test() {
 void terminal_test(){
 	while(1){
 		int write;
-        write = terminal_read(index);
+        write = terminal_read(global_keyboard_index);
         terminal_write(write);
 		//terminal_read();
 	}    
@@ -281,7 +300,7 @@ void launch_tests(){
 
 	//div_test();
 	//syscall_test();
-
+	rtc_test();
 
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("rtc_idt_entry test",idt_special_test_forRtc());

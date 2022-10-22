@@ -21,6 +21,10 @@ int kernel_paging_out_test();
 
 //check point 2
 void terminal_test();
+<<<<<<< HEAD
 void file_read_test1();
 //int rtc_test();
+=======
+void rtc_test();
+>>>>>>> 3187ce97b31d061be99d0f3524e47b53d780ee67
 #endif /* TESTS_H */

@@ -20,9 +20,9 @@
 #define BACKSPACE       0x0E
 #define ENTER           0x1C
 
-int index;
+int global_keyboard_index;
 char keyboard_buffer[BUFFERSIZE];
-char buffer[BUFFERSIZE];
+char terminal_buffer[BUFFERSIZE];
 
 void special_button_status(unsigned int key);
 
@@ -30,7 +30,7 @@ void keyboard_init();
 
 void keyboard_interrupt_handler();
 
-void print_stuff(int value);
+void print_stuff(int value, int indexP);
 
 int terminal_open(char* buffer, int nbytes);
 int terminal_close(char* buffer, int nbytes);
