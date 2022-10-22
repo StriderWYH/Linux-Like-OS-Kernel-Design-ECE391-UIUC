@@ -85,8 +85,8 @@ struct PTE
 
 extern PTE PTE_TABLE[num_PTE];
 extern PDE PDE_TABLE[num_PDE];      // creat the PDE and PTE table
-extern long PDE_TABLE_bottom;
-extern long PTE_TABLE_bottom;       //point to the bottom
+extern int32_t PDE_TABLE_bottom;
+extern int32_t PTE_TABLE_bottom;       //point to the bottom
 extern void page_init();
 
 #endif /* _page_H */

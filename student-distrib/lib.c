@@ -529,9 +529,12 @@ uint16_t get_cursor_position(void)
     return pos;
 }
 
-void scrolling(void){
+void scrolling(int mode){
     int x,y;
-    for (y = 1; y < NUM_COLS; y++){
+    if((mode == 1) && (screen_y != NUM_ROWS - 1)) {
+        return;
+    }
+    for (y = 1; y < NUM_ROWS; y++){
         for (x = 0; x < NUM_COLS; x++){
             *(uint8_t *)(video_mem + ((NUM_COLS * (y - 1) + x) << 1)) = *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1));
             //*(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
@@ -540,9 +543,16 @@ void scrolling(void){
 
     for (x = 0; x < NUM_COLS; x++){
         *(uint8_t *)(video_mem + ((NUM_COLS * (NUM_ROWS-1) + x) << 1)) = ' ';
-        *(uint8_t *)(video_mem + ((NUM_COLS * (NUM_ROWS-1) + x) << 1) + 1) = ATTRIB;
+        //*(uint8_t *)(video_mem + ((NUM_COLS * (NUM_ROWS-1) + x) << 1) + 1) = ATTRIB;
     }
-    screen_y -= 1;   // this is not sure
+    // if(screen_x != NUM_COLS -1){
+    //     screen_y -= 1;
+    // }
+    if((mode == 1) && (screen_y == NUM_ROWS - 1)) {
+        screen_y -= 1;
+    }
+    screen_x = 0;
+    //screen_y -= 1;   // this is not sure
 }
 
 void clean_screen(void){
@@ -550,7 +560,7 @@ void clean_screen(void){
     screen_y = 0;
     update_cursor(0);
     int x,y;
-    for (y = 0; y < NUM_COLS; y++){
+    for (y = 0; y < NUM_ROWS; y++){
         for (x = 0; x < NUM_COLS; x++){
             *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1)) = ' ';
             *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1) + 1) = ATTRIB;
@@ -562,20 +572,26 @@ void clean_screen(void){
 // if choice == 1, that means go down by 1 line; if choice == -1, that means go up by one line
 void change_line(int choice){
     if(choice == 1){
-        screen_x = 0;
+        
         if(screen_y != NUM_ROWS - 1){
+            screen_x = 0;
             screen_y += 1;
         }
         else{
-            scrolling();
+            scrolling(0);
         }
     }
     else if(choice == -1){
         if((screen_x == 0) & (screen_y > 0)){
-            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = ' ';
-            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x-1) << 1)) = ' ';
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x-1) << 1) + 1) = ATTRIB;
             screen_x = NUM_COLS - 1; 
             screen_y -= 1;
+        }
+        else{
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x -1) << 1)) = ' ';
+            *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x -1) << 1) + 1) = ATTRIB;
+            screen_x -= 1;
         }
         
     }
