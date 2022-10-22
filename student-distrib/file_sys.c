@@ -32,7 +32,7 @@ int32_t read_dentry_by_name(const uint8_t*fname, dentry_t* dentry){
 
     for(i = 0; i < boot_block->dir_count; i++){
         // if the fname in the dentry is not null terminated which means it has exact 32 bytes for the name, no place for '\0'
-        if(strlen(boot_block->direntries[i].filename) > FILENAME_LEN){
+        if(strlen(boot_block->direntries[i].filename) >= FILENAME_LEN){
             memcpy(fname_true,boot_block->direntries[i].filename,FILENAME_LEN);
             fname_true[32] = '\0';
             nul_flag = 1;
@@ -45,6 +45,7 @@ int32_t read_dentry_by_name(const uint8_t*fname, dentry_t* dentry){
                 dentry->inode_num = boot_block->direntries[i].inode_num;
                 return 0;
             }else{
+                nul_flag = 0;
                 continue;   // if not compatible, check next dentry's fname
             }
         }else{  // otherwise just compare the fname in the dentry with the fname
@@ -57,7 +58,7 @@ int32_t read_dentry_by_name(const uint8_t*fname, dentry_t* dentry){
                 continue;   // if not compatible, check next dentry's fname
             }
         }
-
+        nul_flag = 0;
     }
     return -1;
 }
@@ -65,7 +66,7 @@ int32_t read_dentry_by_name(const uint8_t*fname, dentry_t* dentry){
  *  read_dentry_by_index
  *  DESCRIPTION: read the dentry with index index(ar1) to the dentry(arg 2)
  *  INPUTS:             index - the index of the target dentry
- *                      dentry - read the target dentry into, we can make sure that the fnmae in dentry is nul terminated
+ *                      dentry - read the target dentry into, we can not make sure that the fname in dentry is nul terminated
  *  OUTPUTS: NONE
  *  SIDEEFFECT: NONE
  *  RETURN VALUE:  -1 - failure to read dentry
@@ -77,7 +78,7 @@ int32_t read_denty_by_index(uint32_t index,dentry_t* dentry){
     if(index < 0 || index >= boot_block->dir_count){
         return -1;
     }
-    if(strlen(boot_block->direntries[index].filename) > FILENAME_LEN){
+    if(strlen(boot_block->direntries[index].filename) >= FILENAME_LEN){
             memcpy(fname_true,boot_block->direntries[index].filename,FILENAME_LEN);
             fname_true[32] = '\0';
             nul_flag = 1;
@@ -120,7 +121,9 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t*buf, uint32_t length)
     
     for(i = 0; i < length; i++){
         // first check if the current byte is in the range of the file
-        if (i + offset >= current_inode_addr->length_of_file ) return i; // it reached the end of the file, return the bytes have read now
+        if (i + offset >= current_inode_addr->length_of_file ){
+             return i; // it reached the end of the file, return the bytes have read now
+        }
         buf[i] = read_data_block->data[data_id_in_block];
         data_id_in_block++;
         if(data_id_in_block >= FOUR_KB){
@@ -150,7 +153,7 @@ void file_sys_init(uint32_t file_sys_start){
 }
 /*
  *  file_open 
- *  DESCRIPTION: open a data file by fname both for regular file or executables
+ *  DESCRIPTION: open a data file by fname both for regular file (type2, including executables)
  *  INPUTS:             filename  - the name of the file to be opened
  *  OUTPUTS: NONE
  *  SIDEEFFECT: NONE
@@ -158,12 +161,11 @@ void file_sys_init(uint32_t file_sys_start){
  *                      -1 - fail openning 
  */
 int32_t file_open(const uint8_t* filename){
-    dentry_t current_dentry;
     int32_t result;
-    result = read_dentry_by_name(filename,&current_dentry);
+    result = read_dentry_by_name(filename,&glob_dentry);
     // if read file fails or the current file type is not regular file, return -1
     if (result == -1) return -1;
-    if (current_dentry.filetype != 2) return -1;
+    if (glob_dentry.filetype != 2) return -1;
     // otherwise return 0 as success
     return 0;
 }
@@ -206,26 +208,32 @@ int32_t file_write(int32_t fd, const void* buf, int32_t nbytes){
  *                      -1 - fail reading
  *                 result - number of the bytes read successfully
  */                                         
-int32_t file_read(int32_t fd,void* buf,int32_t offset, int32_t nbytes){
+int32_t file_read(int32_t fd,void* buf, int32_t nbytes){
     int32_t result,length;
     
     // check if the type of the file is regular file, only which could be read
     if(glob_dentry.filetype != 2) return -1;
-    length = ((inode_t*)(boot_block + 1 + glob_dentry.inode_num))->length_of_file - offset;
+    length = ((inode_t*)(boot_block + 1 + glob_dentry.inode_num))->length_of_file;
 
-    result = read_data(glob_dentry.inode_num,offset,buf,length);
+    result = read_data(glob_dentry.inode_num,0,buf,length);
 
     return result;
 
 }
-
+/*
+ *  dir_open 
+ *  DESCRIPTION: open a  file by filename both for directory or regular file
+ *  INPUTS:             filename  - the name of the dir to be opened
+ *  OUTPUTS: NONE
+ *  SIDEEFFECT: NONE
+ *  RETURN VALUE:       0  - open successfully
+ *                      -1 - fail openning 
+ */
 int32_t dir_open(const uint8_t* filename){
-    dentry_t current_dentry;
     int32_t result;
-    result = read_dentry_by_name(filename,&current_dentry);
-    // if read fname fails or the current file type is not a directory file, return -1
+    result = read_dentry_by_name(filename,&glob_dentry_for_dirread);
+    // if read fname fails  return -1
     if (result == -1) return -1;
-    if (current_dentry.filetype != 1) return -1;
     // otherwise return 0 as success
     return 0;
  }
@@ -246,7 +254,7 @@ int32_t dir_close(int32_t fd){
  *                      -1 - fail reading
  *    
  */             
-int32_t dir_read(int32_t fd, void* buf,int32_t offset, int32_t nbytes){
+int32_t dir_read(int32_t fd, void* buf, int32_t nbytes){
     int32_t result;
     result = read_denty_by_index(dir_index,&glob_dentry_for_dirread);
     if(result == -1){

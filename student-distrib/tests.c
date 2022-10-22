@@ -271,16 +271,18 @@ void terminal_test(){
 }
 
 
-void file_read_test1(){
+void file_read_testsf(){
 	uint8_t buf[500];
 	int32_t result,i;
 	i = 0;
+	clean_screen();
 	result = file_open((uint8_t*)"frame0.txt");
+	file_close(0);
 	if(result == -1){
 		printf("fail opening frame0.txt\n");
 		return;
 	}
-	result = file_read(0,buf,0,500);
+	result = file_read(0,buf,500);
 	while((buf[i]) != '\0'){
 		putc(buf[i]);
 		i++;
@@ -289,6 +291,100 @@ void file_read_test1(){
 	printf("file_name: fram0.txt");
 }
 
+void file_read_testexe(){
+	uint8_t buf[5349];
+	int32_t result,i;
+	i = 0;
+	clean_screen();
+	result = file_open((uint8_t*)"ls");
+	file_close(0);
+	if(result == -1){
+		printf("fail opening ls\n");
+		return;
+	}
+	result = file_read(0,buf,5349);
+	while(i < 5349){
+		print_stuff(buf[i],i);
+		i++;
+	}
+	printf("\n");
+	printf("file_name: ls");
+}
+
+void file_read_testlf(){
+	uint8_t buf[5349];
+	int32_t result,i;
+	i = 0;
+	clean_screen();
+	result = file_open((uint8_t*)"verylargetextwithverylongname.tx");
+	file_close(0);
+	if(result == -1){
+		printf("fail opening verylargetextwithverylongname.tx\n");
+		return;
+	}
+	result = file_read(0,buf,5349);
+	while(i < 5349){
+		print_stuff(buf[i],i);
+		i++;
+	}
+	printf("\n");
+	printf("file_name: verylargetextwithverylongname.tx");
+} 
+
+void print_out_all_files(){
+	uint32_t result,file_size,filename_length,i;
+	uint8_t buf[5349];
+	uint8_t filename_buf[33];
+	filename_buf[32] = '\0';
+	for(i=0;i<32;i++){
+			filename_buf[i] = ' ';
+		}
+	clean_screen();
+	result = dir_open((uint8_t*)".");
+	if(result == -1){
+		printf("fail opening .\n");
+		return;
+	}
+	while(!dir_read(0,buf,0)){
+		printf("file_name: ");
+		filename_length = strlen(glob_dentry_for_dirread.filename);
+		if(filename_length > 32) filename_length = 32;
+		for(i = 0; i <filename_length ;i++){
+			filename_buf[32-filename_length+i] = glob_dentry_for_dirread.filename[i];
+		}
+		puts((int8_t*)filename_buf);
+		printf(", file_type: ");
+		printf("%d, ",glob_dentry_for_dirread.filetype);
+		file_size = ((inode_t*)boot_block + 1 + glob_dentry_for_dirread.inode_num)->length_of_file;
+		printf("file_size:");
+		if(file_size < 10) printf("      ");
+		else if (file_size < 100)
+		{
+			printf("     ");/* code */
+		}
+		else if (file_size < 1000)
+		{
+			printf("    ");/* code */
+		}
+		else if (file_size < 10000)
+		{
+			printf("   ");/* code */
+		}
+		else if (file_size < 100000)
+		{
+			printf("  ");/* code */
+		}
+		else{
+			printf(" ");/* code */
+		}
+		printf("%d",file_size);
+		printf("\n");
+		for(i=0;i<32;i++){
+			filename_buf[i] = ' ';
+		}
+	}
+
+}
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -300,7 +396,7 @@ void launch_tests(){
 
 	//div_test();
 	//syscall_test();
-	rtc_test();
+	//rtc_test();
 
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("rtc_idt_entry test",idt_special_test_forRtc());
@@ -316,6 +412,9 @@ void launch_tests(){
 
 	// PagingFault_test();
 	//terminal_test();
-	file_read_test1();
+	//file_read_testsf();
+	//file_read_testexe();
+	file_read_testlf();
+	//print_out_all_files();
 	// launch your tests here
 }

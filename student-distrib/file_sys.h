@@ -51,12 +51,12 @@ extern void file_sys_init(uint32_t file_sys_start);
 
 extern int32_t file_open(const uint8_t* filename);
 extern int32_t file_close(int32_t fd);
-extern int32_t file_read(int32_t fd, void* buf,int32_t offset, int32_t nbytes);
+extern int32_t file_read(int32_t fd, void* buf, int32_t nbytes);
 extern int32_t file_write(int32_t fd, const void* buf, int32_t nbytes);
 
 extern int32_t dir_open(const uint8_t* filename);
 extern int32_t dir_close(int32_t fd);
-extern int32_t dir_read(int32_t fd, void* buf,int32_t offset, int32_t nbytes);
+extern int32_t dir_read(int32_t fd, void* buf, int32_t nbytes);
 extern int32_t dir_write(int32_t fd, const void* buf, int32_t nbytes);
 
 
@@ -64,8 +64,6 @@ extern int32_t dir_write(int32_t fd, const void* buf, int32_t nbytes);
 boot_block_t* boot_block;
 data_block_t* data_block_addr;
 int32_t dir_index;
-int32_t file_size;
-int32_t file_type;
 dentry_t glob_dentry; // a global variable used for CP2 due to the absence of file array and file descriptor 
 dentry_t glob_dentry_for_dirread;
 
