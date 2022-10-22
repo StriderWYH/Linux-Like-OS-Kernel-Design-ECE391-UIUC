@@ -4,6 +4,7 @@
 #include "rtc.h"
 #include "i8259.h"
 #include "keyboard.h"
+#include "file_sys.h"
 #define PASS 1
 #define FAIL 0
 
@@ -251,6 +252,23 @@ void terminal_test(){
 }
 
 
+void file_read_test1(){
+	uint8_t buf[500];
+	int32_t result,i;
+	i = 0;
+	result = file_open((uint8_t*)"frame0.txt");
+	if(result == -1){
+		printf("fail opening frame0.txt\n");
+		return;
+	}
+	result = file_read(0,buf,0,500);
+	while((buf[i]) != '\0'){
+		putc(buf[i]);
+		i++;
+	}
+	printf("\n");
+	printf("file_name: fram0.txt");
+}
 
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
@@ -278,6 +296,7 @@ void launch_tests(){
 	//TEST_OUTPUT("kernel_paging_out_test", kernel_paging_out_test());
 
 	// PagingFault_test();
-	terminal_test();
+	//terminal_test();
+	file_read_test1();
 	// launch your tests here
 }

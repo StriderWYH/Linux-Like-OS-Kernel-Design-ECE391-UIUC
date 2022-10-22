@@ -9,7 +9,7 @@
 #include "debug.h"
 #include "tests.h"
 #include "page.h"
-
+#include "file_sys.h"
 
 #include "keyboard.h"
 #include "rtc.h"
@@ -26,7 +26,7 @@
 void entry(unsigned long magic, unsigned long addr) {
 
     multiboot_info_t *mbi;
-
+    int32_t filesys;
     /* Clear the screen. */
     clear();
 
@@ -59,6 +59,7 @@ void entry(unsigned long magic, unsigned long addr) {
         int i;
         module_t* mod = (module_t*)mbi->mods_addr;
         while (mod_count < mbi->mods_count) {
+            filesys = ( int32_t)mod->mod_start;
             printf("Module %d loaded at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_start);
             printf("Module %d ends at address: 0x%#x\n", mod_count, (unsigned int)mod->mod_end);
             printf("First few bytes of module:\n");
@@ -144,6 +145,8 @@ void entry(unsigned long magic, unsigned long addr) {
     //initial the PDE and PTE table and turn on paging
     page_init();
     //printf("initializing the IDT......\n");
+    
+    file_sys_init(filesys);
     idt_init();
     /* Init the PIC */
     i8259_init();
