@@ -104,8 +104,12 @@ int RTC_read()
 
 int RTC_write(void* buffer)
 {
-    int frequency = *((int*)buffer);
-    int rate = get_interrupt_rate(frequency);
+    int frequency;
+    int rate;
+    frequency = *((int*)buffer);
+    //printf("%d",frequency);
+    
+    rate = get_interrupt_rate(frequency);
     if (rate == -1)     //if the frequency is not the power of 2 and not >2,<1024, return -1
     {
         return -1;      //if fail to set frequency, return -1

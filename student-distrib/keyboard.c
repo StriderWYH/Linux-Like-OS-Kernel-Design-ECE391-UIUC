@@ -3,12 +3,12 @@
 #include "i8259.h"
 
 
-//int index = 0;
+//int global_keyboard_index = 0;
 unsigned int status_shift = 0;  //0 for release, 1 for press
 unsigned int status_ctrl = 0;   //0 for release, 1 for press
 unsigned int status_caps = 0;   //0 for unlock, 1 for lock
 unsigned int special_change = 0;    //0 for no special button change
-/*this is a scan_code table, which is used for search each key's ASCII by index*/
+/*this is a scan_code table, which is used for search each key's ASCII by global_keyboard_index*/
 volatile int keyboard_flag = 0;
 
 
@@ -111,26 +111,26 @@ void keyboard_interrupt_handler()
 
     if (key == 0x39)    //0x39 is the scancode for space
     {
-        if (index < 127)
+        if (global_keyboard_index < 127)
         {
-            keyboard_buffer[index++] = 32;  //32 for blank
-            print_stuff(32);
+            keyboard_buffer[global_keyboard_index++] = 32;  //32 for blank
+            print_stuff(32,global_keyboard_index);
         }
         send_eoi(KEYBOARD_IRQ);
         return;
     }
     if (key == 0x0F)    //0x0F is the scancode for TAB
     {
-        if (index <= 127-4)
+        if (global_keyboard_index <= 127-4)
         {
-            keyboard_buffer[index++] = 32;  //32 for blank
-            print_stuff(32);
-            keyboard_buffer[index++] = 32;  //32 for blank
-            print_stuff(32);
-            keyboard_buffer[index++] = 32;  //32 for blank
-            print_stuff(32);
-            keyboard_buffer[index++] = 32;  //32 for blank
-            print_stuff(32);
+            keyboard_buffer[global_keyboard_index++] = 32;  //32 for blank
+            print_stuff(32,global_keyboard_index);
+            keyboard_buffer[global_keyboard_index++] = 32;  //32 for blank
+            print_stuff(32,global_keyboard_index);
+            keyboard_buffer[global_keyboard_index++] = 32;  //32 for blank
+            print_stuff(32,global_keyboard_index);
+            keyboard_buffer[global_keyboard_index++] = 32;  //32 for blank
+            print_stuff(32,global_keyboard_index);
         }
         send_eoi(KEYBOARD_IRQ);
         return;
@@ -146,10 +146,10 @@ void keyboard_interrupt_handler()
         }
         if (key == ENTER)
         {
-            //terminal_read(index);
-            //terminal_write(terminal_read(index));
+            //terminal_read(global_keyboard_index);
+            //terminal_write(terminal_read(global_keyboard_index));
             // int write;
-            // write = terminal_read(index);
+            // write = terminal_read(global_keyboard_index);
             // terminal_write(write);
     		// terminal_read();
 
@@ -159,10 +159,10 @@ void keyboard_interrupt_handler()
         }
         if (key == BACKSPACE)
         {
-            //int old_index = index;
-            if (index > 0){
-                keyboard_buffer[index-1] = '\0';
-                index = index -1;
+            //int old_index = global_keyboard_index;
+            if (global_keyboard_index > 0){
+                keyboard_buffer[global_keyboard_index-1] = '\0';
+                global_keyboard_index = global_keyboard_index -1;
                 change_line(-1);
                 update_cursor(0);
             }
@@ -204,10 +204,10 @@ void keyboard_interrupt_handler()
             return;
         }
         
-        if (index < 127)
+        if (global_keyboard_index < 127)
         {
-            keyboard_buffer[index++] = value;
-            print_stuff(value);
+            keyboard_buffer[global_keyboard_index++] = value;
+            print_stuff(value,global_keyboard_index);
             //putc(value);
         }
     } 
@@ -216,8 +216,8 @@ void keyboard_interrupt_handler()
     return;
 }
 
-void print_stuff(value){
-    if(index == 80){ // check whether the buffer has filled a row
+void print_stuff(int value,int indexP){
+    if((indexP % 80) == 0){ // check whether the buffer has filled a row
         putc(value);
         change_line(1);
         update_cursor(0);  // the offset is not sure
@@ -248,7 +248,7 @@ int terminal_read(int nbytes){
     keyboard_flag = 0;
     /////////////////// Maybe space for enter actions
     //putc((int)('\n')); // change the line
-    if((index) != 80){
+    if((global_keyboard_index) != 80){
         change_line(1);
     }
    
@@ -258,7 +258,7 @@ int terminal_read(int nbytes){
 
     /////////////////// Maybe space for enter actions
 
-    for(i = 0; i < index; i++){
+    for(i = 0; i < global_keyboard_index; i++){
         /*
         if(keyboard_buffer[i] == '\n'){ // when the enter is detected, end reading
             keyboard_buffer[i] = '\0';
@@ -269,14 +269,14 @@ int terminal_read(int nbytes){
             keyboard_buffer[i] = '\0';
             break;
         }
-        buffer[i] = keyboard_buffer[i];
+        terminal_buffer[i] = keyboard_buffer[i];
         byte_read += 1;
         keyboard_buffer[i] = '\0'; // clear the buffer
     }
-    buffer[index] = '\n';
+    terminal_buffer[global_keyboard_index] = '\n';
     byte_read++;
     //printf("%d",&nbytes);
-    index = 0;
+    global_keyboard_index = 0;
     return byte_read;
 }
 
@@ -287,18 +287,18 @@ int terminal_write(int nbytes){
     //if (nbytes > 80)  scrolling(1);
 
     for(i = 0; i < nbytes; i++){
-        if((i == 80) & (buffer[i] != '\n')){
+        if((i == 80) & (terminal_buffer[i] != '\n')){
             change_line(1);
         }
-        if(buffer[i] == '\n'){
+        if(terminal_buffer[i] == '\n'){
             change_line(1);
         }
         else{
-            putc(buffer[i]);
+            putc(terminal_buffer[i]);
         }
 
         byte_write += 1;
-        buffer[i] = '\0'; // clear the buffer
+        terminal_buffer[i] = '\0'; // clear the buffer
         update_cursor(0); // update the cursor by one place 
     
     }
