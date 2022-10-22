@@ -21,6 +21,8 @@
 #define ENTER           0x1C
 
 int index;
+char keyboard_buffer[BUFFERSIZE];
+char buffer[BUFFERSIZE];
 
 void special_button_status(unsigned int key);
 

@@ -2,9 +2,8 @@
 #include "lib.h"
 #include "i8259.h"
 
-char keyboard_buffer[BUFFERSIZE];
-char buffer[BUFFERSIZE];
-int index = 0;
+
+//int index = 0;
 unsigned int status_shift = 0;  //0 for release, 1 for press
 unsigned int status_ctrl = 0;   //0 for release, 1 for press
 unsigned int status_caps = 0;   //0 for unlock, 1 for lock
@@ -109,6 +108,34 @@ void keyboard_interrupt_handler()
     key = inb(KEYBOARD_PORT) & 0xFF;    //low 8 bits
 
     special_button_status(key);
+
+    if (key == 0x39)    //0x39 is the scancode for space
+    {
+        if (index < 127)
+        {
+            keyboard_buffer[index++] = 32;  //32 for blank
+            print_stuff(32);
+        }
+        send_eoi(KEYBOARD_IRQ);
+        return;
+    }
+    if (key == 0x0F)    //0x0F is the scancode for TAB
+    {
+        if (index <= 127-4)
+        {
+            keyboard_buffer[index++] = 32;  //32 for blank
+            print_stuff(32);
+            keyboard_buffer[index++] = 32;  //32 for blank
+            print_stuff(32);
+            keyboard_buffer[index++] = 32;  //32 for blank
+            print_stuff(32);
+            keyboard_buffer[index++] = 32;  //32 for blank
+            print_stuff(32);
+        }
+        send_eoi(KEYBOARD_IRQ);
+        return;
+    }
+
     if (key>=0 && key<=57)
     {
         if ((status_ctrl==1) && (key == 0x26))  //scancode of 'l' is 0x26
@@ -177,7 +204,7 @@ void keyboard_interrupt_handler()
             return;
         }
         
-        if (index <= 127)
+        if (index < 127)
         {
             keyboard_buffer[index++] = value;
             print_stuff(value);
@@ -217,11 +244,11 @@ int terminal_read(int nbytes){
     int byte_read;
     int i = 0;
     byte_read = 0;
-    while(keyboard_flag);
+    while(!keyboard_flag);
     keyboard_flag = 0;
     /////////////////// Maybe space for enter actions
     //putc((int)('\n')); // change the line
-    if(nbytes != 80){
+    if((index) != 80){
         change_line(1);
     }
    
@@ -231,7 +258,7 @@ int terminal_read(int nbytes){
 
     /////////////////// Maybe space for enter actions
 
-    for(i = 0; i < nbytes; i++){
+    for(i = 0; i < index; i++){
         /*
         if(keyboard_buffer[i] == '\n'){ // when the enter is detected, end reading
             keyboard_buffer[i] = '\0';
@@ -246,7 +273,7 @@ int terminal_read(int nbytes){
         byte_read += 1;
         keyboard_buffer[i] = '\0'; // clear the buffer
     }
-    buffer[nbytes] = '\n';
+    buffer[index] = '\n';
     byte_read++;
     //printf("%d",&nbytes);
     index = 0;

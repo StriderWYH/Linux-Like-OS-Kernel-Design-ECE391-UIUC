@@ -2,6 +2,7 @@
     "files.associations": {
         "keyboard.h": "c",
         "lib.h": "c",
-        "key_sd.h": "c"
+        "key_sd.h": "c",
+        "types.h": "c"
     }
 }

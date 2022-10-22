@@ -588,6 +588,9 @@ void change_line(int choice){
             screen_x = NUM_COLS - 1; 
             screen_y -= 1;
         }
+        else if((screen_x == 0) & (screen_y == 0)){
+            return;
+        }
         else{
             *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x -1) << 1)) = ' ';
             *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x -1) << 1) + 1) = ATTRIB;

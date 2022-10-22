@@ -96,7 +96,7 @@ int RTC_close()
 
 int RTC_read()
 {
-    while(RTC_interrupt == 1){}
+    while(RTC_interrupt == 0){}
     RTC_interrupt = 0;
     return 0;
 }
