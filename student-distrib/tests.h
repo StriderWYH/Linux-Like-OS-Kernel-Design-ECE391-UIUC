@@ -17,5 +17,9 @@ int idt_special_test_forRtc();
 
 int VirtualMemory_paging_out_test();
 int kernel_paging_out_test();
+
+
+//check point 2
+void terminal_test();
 //int rtc_test();
 #endif /* TESTS_H */

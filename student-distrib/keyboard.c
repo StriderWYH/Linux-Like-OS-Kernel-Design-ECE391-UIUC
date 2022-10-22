@@ -10,6 +10,7 @@ unsigned int status_ctrl = 0;   //0 for release, 1 for press
 unsigned int status_caps = 0;   //0 for unlock, 1 for lock
 unsigned int special_change = 0;    //0 for no special button change
 /*this is a scan_code table, which is used for search each key's ASCII by index*/
+volatile int keyboard_flag = 0;
 
 
 //int keyboard_length = 0;
@@ -120,9 +121,12 @@ void keyboard_interrupt_handler()
         {
             //terminal_read(index);
             //terminal_write(terminal_read(index));
-            int write;
-            write = terminal_read(index);
-            terminal_write(write);
+            // int write;
+            // write = terminal_read(index);
+            // terminal_write(write);
+    		// terminal_read();
+
+            keyboard_flag = 1;
             send_eoi(KEYBOARD_IRQ);
             return;
         }
@@ -213,7 +217,8 @@ int terminal_read(int nbytes){
     int byte_read;
     int i = 0;
     byte_read = 0;
-
+    while(keyboard_flag);
+    keyboard_flag = 0;
     /////////////////// Maybe space for enter actions
     //putc((int)('\n')); // change the line
     if(nbytes != 80){
