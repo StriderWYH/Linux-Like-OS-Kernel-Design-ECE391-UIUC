@@ -3,6 +3,7 @@
 #include "lib.h"
 #include "rtc.h"
 #include "i8259.h"
+#include "keyboard.h"
 #define PASS 1
 #define FAIL 0
 
@@ -238,6 +239,19 @@ int rtc_test() {
 
 
 /* Checkpoint 2 tests */
+
+void terminal_test(){
+	while(1){
+		int write;
+        write = terminal_read(index);
+        terminal_write(write);
+		//terminal_read();
+	}    
+
+}
+
+
+
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -264,6 +278,6 @@ void launch_tests(){
 	//TEST_OUTPUT("kernel_paging_out_test", kernel_paging_out_test());
 
 	// PagingFault_test();
-
+	terminal_test();
 	// launch your tests here
 }

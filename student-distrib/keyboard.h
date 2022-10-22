@@ -19,6 +19,9 @@
 #define CTRL_RELEASE    0x9D
 #define BACKSPACE       0x0E
 #define ENTER           0x1C
+
+int index;
+
 void special_button_status(unsigned int key);
 
 void keyboard_init();
