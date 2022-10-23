@@ -455,10 +455,10 @@ void launch_tests(){
 	//TEST_OUTPUT("kernel_paging_out_test", kernel_paging_out_test());
 
 	//PagingFault_test();
-	terminal_test();
+	//terminal_test();
 	//file_read_testsf();
 	//file_read_testexe();
 	//file_read_testlf();
-	//print_out_all_files();
+	print_out_all_files();
 	// launch your tests here
 }
