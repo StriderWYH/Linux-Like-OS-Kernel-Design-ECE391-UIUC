@@ -32,8 +32,8 @@ void keyboard_interrupt_handler();
 
 void print_stuff(int value, int indexP);
 
-int terminal_open(char* buffer, int nbytes);
-int terminal_close(char* buffer, int nbytes);
+int terminal_open(int nbytes);
+int terminal_close(int nbytes);
 int terminal_read(int nbytes);
 int terminal_write(int nbytes);
 #endif

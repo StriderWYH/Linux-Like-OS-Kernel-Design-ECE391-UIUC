@@ -225,9 +225,9 @@ void syscall_test() {
 }
 
 /*
- * int rtc_test()
- * Description: This function tests rtc interrupt handler.
- * Return Value: PASS
+ * void rtc_test()
+ * Description: This function call the rtc read and write and set frequency every 20 characters
+ * Return Value: none
  * Side Effects: rtc interrupts enabled
  */
  
@@ -237,6 +237,7 @@ void rtc_test()
 	int i = 0;
 	int index_ds = 0;
 	int buffer_1[1];
+	clean_screen();
 	buffer_1[0] = 2;
 	RTC_open();
 	while(1){
@@ -260,13 +261,20 @@ void rtc_test()
 
 /* Checkpoint 2 tests */
 
+/* terminal_test()
+ * introduction: continusly call the read and write to test them
+ * input: none
+ * output: none
+ */
 void terminal_test(){
+	terminal_open(0);
 	while(1){
 		int write;
         write = terminal_read(global_keyboard_index);
         terminal_write(write);
 		//terminal_read();
 	}    
+	terminal_close(0);
 
 }
 
@@ -446,11 +454,11 @@ void launch_tests(){
 	//TEST_OUTPUT("Kernel_paging_test", Kernel_paging_test());
 	//TEST_OUTPUT("kernel_paging_out_test", kernel_paging_out_test());
 
-	// PagingFault_test();
-	//terminal_test();
+	//PagingFault_test();
+	terminal_test();
 	//file_read_testsf();
 	//file_read_testexe();
-	file_read_testlf();
+	//file_read_testlf();
 	//print_out_all_files();
 	// launch your tests here
 }
