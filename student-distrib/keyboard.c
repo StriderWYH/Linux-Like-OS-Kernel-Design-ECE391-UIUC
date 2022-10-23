@@ -214,12 +214,16 @@ void keyboard_interrupt_handler()
         
     send_eoi(KEYBOARD_IRQ);
     return;
-}
-
+} 
+/* print_stuff
+ * introduction: a modified version of putc, which can change line and scroll down according to the index
+ * input: value: the value to print; indexP, the index of it on the screen, which is almost the same as screen_X
+ * output: none
+ */
 void print_stuff(int value,int indexP){
-    if((indexP % 80) == 0){ // check whether the buffer has filled a row
+    if((indexP % 80) == 0){ // check whether the buffer has filled a row, 80 is the length of the x-axis
         putc(value);
-        change_line(1);
+        change_line(1);  // change line by one, if necssary scroll down for one line
         update_cursor(0);  // the offset is not sure
     }
     else{
@@ -229,26 +233,40 @@ void print_stuff(int value,int indexP){
     return;
 }
 
-
+/* terminal_open
+ * introduction: clean the screen and update the cursor, which should be added more function in later checkpoints
+ * input: nbytes : the bytes to be read
+ * output: 0 if success
+ */
 //////////////////////////////////////////////////////
-int terminal_open(char* buffer, int nbytes){
-    update_cursor(0);
+int terminal_open(int nbytes){
+    clean_screen();                     // clean the screen first
+    update_cursor(0);                   // update the cursor
     return 0;
 }
-
-int terminal_close(char* buffer, int nbytes){
+/* terminal_close
+ * introduction: close the terminal
+ * input: nbytes
+ * output: 0 if success
+ */
+int terminal_close(int nbytes){
+    disable_cursor();
     return 0;
 }
-
+/* terminal_read
+ * introduction: read the character from the keyboard and store it in the terminal buffer
+ * input: nbytes: bytes to be read
+ * output: bytes that is successfully read
+ */
 int terminal_read(int nbytes){
     int byte_read;
     int i = 0;
     byte_read = 0;
-    while(!keyboard_flag);
-    keyboard_flag = 0;
+    while(!keyboard_flag);              // wait untill the keyboard has entered a "enter"
+    keyboard_flag = 0;                  // reset the flag to be used next time
     /////////////////// Maybe space for enter actions
     //putc((int)('\n')); // change the line
-    if((global_keyboard_index) != 80){
+    if((global_keyboard_index) != 80){  // if the index is 80, that should change one line
         change_line(1);
     }
    
@@ -279,7 +297,11 @@ int terminal_read(int nbytes){
     global_keyboard_index = 0;
     return byte_read;
 }
-
+/* terminal_write 
+ * introduction: write the bytes read into the buffer
+ * input: nbytes : bytes to be written
+ * output: bytes that are successfully written
+ */
 int terminal_write(int nbytes){
     int byte_write;
     int i = 0;
@@ -287,7 +309,7 @@ int terminal_write(int nbytes){
     //if (nbytes > 80)  scrolling(1);
 
     for(i = 0; i < nbytes; i++){
-        if((i == 80) & (terminal_buffer[i] != '\n')){
+        if((i == 80) & (terminal_buffer[i] != '\n')){    // if it meet the end of the line or user pressed an "enter"
             change_line(1);
         }
         if(terminal_buffer[i] == '\n'){
