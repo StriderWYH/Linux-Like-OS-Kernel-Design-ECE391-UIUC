@@ -12,7 +12,7 @@ unsigned int special_change = 0;    //0 for no special button change
 volatile int keyboard_flag = 0;
 
 
-//int keyboard_length = 0;
+//when releasing caps and shift 
 unsigned char scancode_lower[58] = 
 {
     0,0,'1','2','3','4','5','6','7','8','9','0','-','=',
@@ -21,6 +21,7 @@ unsigned char scancode_lower[58] =
     '`',0,'\\','z','x','c','v','b','n','m',',','.','/',
     0,0,0,'\0'
 };
+//when pressing shift and releasing caps
 unsigned char scancode_upper[58] =
 {
     0,0,'!','@','#','$','%','^','&','*','(',')','_','+',
@@ -29,6 +30,7 @@ unsigned char scancode_upper[58] =
     '~',0,'|','Z','X','C','V','B','N','M','<','>','?',
     0,0,0,'\0'
 };
+//when pressing caps and releasing shift
 unsigned char scancode_caps_only[58] = 
 {
     0,0,'1','2','3','4','5','6','7','8','9','0','-','=',
@@ -37,6 +39,7 @@ unsigned char scancode_caps_only[58] =
     '`',0,'\\','Z','X','C','V','B','N','M',',','.','/',
     0,0,0,'\0'
 };
+//when preesing shift and caps
 unsigned char scancode_shift_caps[58] = 
 {
     0,0,'!','@','#','$','%','^','&','*','(',')','_','+',
@@ -46,35 +49,35 @@ unsigned char scancode_shift_caps[58] =
     0,0,0,'\0'
 };
 
-/*
- * 
- * 
+/*  introduction: judge if pressing a special button and set status
+ *  input: key
+ *  output: none
  */
 void special_button_status(unsigned int key)
 {
-    special_change = 0;
-    if ((key == LSHIFT_PRESS) || (key == RSHIFT_PRESS))
+    special_change = 0;     //if the status of special button changes, set special_change to 1
+    if ((key == LSHIFT_PRESS) || (key == RSHIFT_PRESS))     //if pressing the shift
     {
         status_shift = 1;
         special_change = 1;
     }
-    if ((key == LSHIFT_RELEASE) || (key == RSHIFT_RELEASE))
+    if ((key == LSHIFT_RELEASE) || (key == RSHIFT_RELEASE))     // if releasing the shift
     {
         status_shift = 0;
         special_change = 1;
     }
-    if (key == CAPS)
+    if (key == CAPS)    //press caps, the status of caps changes
     {
         status_caps = ~status_caps;
-        status_caps = status_caps & 0X01;
+        status_caps = status_caps & 0X01;   //status_caps is a 1 bit number
         special_change = 1;
     }
-    if (key == CTRL_PRESS)
+    if (key == CTRL_PRESS)      //if pressing ctrl
     {
         status_ctrl = 1;
         special_change = 1;
     }
-    if (key == CTRL_RELEASE)
+    if (key == CTRL_RELEASE)        //if releasing ctrl
     {
         status_ctrl = 0;
         special_change = 1;
@@ -111,7 +114,7 @@ void keyboard_interrupt_handler()
 
     if (key == 0x39)    //0x39 is the scancode for space
     {
-        if (global_keyboard_index < 127)
+        if (global_keyboard_index < 127)        //the 127 place of the buffer is '\0'
         {
             keyboard_buffer[global_keyboard_index++] = 32;  //32 for blank
             print_stuff(32,global_keyboard_index);
@@ -136,15 +139,15 @@ void keyboard_interrupt_handler()
         return;
     }
 
-    if (key>=0 && key<=57)
+    if (key>=0 && key<=57)      //if the scancode is in the array
     {
         if ((status_ctrl==1) && (key == 0x26))  //scancode of 'l' is 0x26
         {
-            clean_screen();
+            clean_screen();         //if press ctrl+l, clean the screen
             send_eoi(KEYBOARD_IRQ);
             return;
         }
-        if (key == ENTER)
+        if (key == ENTER)       
         {
             //terminal_read(global_keyboard_index);
             //terminal_write(terminal_read(global_keyboard_index));
@@ -157,57 +160,55 @@ void keyboard_interrupt_handler()
             send_eoi(KEYBOARD_IRQ);
             return;
         }
-        if (key == BACKSPACE)
+        if (key == BACKSPACE)       //if press backspace 
         {
             //int old_index = global_keyboard_index;
             if (global_keyboard_index > 0){
                 keyboard_buffer[global_keyboard_index-1] = '\0';
                 global_keyboard_index = global_keyboard_index -1;
-                change_line(-1);
+                change_line(-1);    //change line
                 update_cursor(0);
             }
             else{
                 send_eoi(KEYBOARD_IRQ);
                 return; 
             }
-            ///////////////////////////
             send_eoi(KEYBOARD_IRQ);
             return;
-            ///////////////////////////
         }
-        if (special_change == 1)
+        if (special_change == 1)    //if the special button has been changed, no need for further judgement below
         {
             send_eoi(KEYBOARD_IRQ);
             return;
         }
         if ((status_caps==0)&&(status_shift==0))
         {
-            value = scancode_lower[key];
+            value = scancode_lower[key];    //use different scancode array to find the correct ascii
         }
         if ((status_caps==1)&&(status_shift==0))
         {
             
-            value = scancode_caps_only[key];
+            value = scancode_caps_only[key];    //use different scancode array to find the correct ascii
         }
         if ((status_caps==0)&&(status_shift==1))
         {
-            value = scancode_upper[key];
+            value = scancode_upper[key];    //use different scancode array to find the correct ascii
         }
         if ((status_caps==1)&&(status_shift==1))
         {
-            value = scancode_shift_caps[key];  
+            value = scancode_shift_caps[key];   //use different scancode array to find the correct ascii
         }
         
-        if (value == '\0')
+        if (value == '\0')      // if enter a '\0', return
         {
             send_eoi(KEYBOARD_IRQ);
             return;
         }
         
-        if (global_keyboard_index < 127)
+        if (global_keyboard_index < 127)    //if the buffer still have space
         {
-            keyboard_buffer[global_keyboard_index++] = value;
-            print_stuff(value,global_keyboard_index);
+            keyboard_buffer[global_keyboard_index++] = value;   //put the value in the buffer
+            print_stuff(value,global_keyboard_index);       //print the value
             //putc(value);
         }
     } 

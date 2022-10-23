@@ -237,6 +237,7 @@ void rtc_test()
 	int i = 0;
 	int index_ds = 0;
 	int buffer_1[1];
+	clean_screen();
 	buffer_1[0] = 2;
 	RTC_open();
 	while(1){
