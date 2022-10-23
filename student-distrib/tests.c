@@ -271,6 +271,14 @@ void terminal_test(){
 }
 
 
+/*
+ * file_read_testsf()
+ * Description: test for read small file (e.g. frame0.txt).
+ * INPUT: NONE
+ * OUTPUT: NONE
+ * Return Value: fail (warning sentence) or sucess (nothing)
+ * Side Effects: clean the screen
+ */
 void file_read_testsf(){
 	uint8_t buf[500];
 	int32_t result,i;
@@ -290,7 +298,14 @@ void file_read_testsf(){
 	printf("\n");
 	printf("file_name: fram0.txt");
 }
-
+/*
+ * file_read_testexe()
+ * Description: test for read exe file (e.g. ls.txt).
+ * INPUT: NONE
+ * OUTPUT: NONE
+ * Return Value: fail (warning sentence) or sucess (nothing)
+ * Side Effects: clean the screen
+ */
 void file_read_testexe(){
 	uint8_t buf[5349];
 	int32_t result,i;
@@ -310,7 +325,14 @@ void file_read_testexe(){
 	printf("\n");
 	printf("file_name: ls");
 }
-
+/*
+ * file_read_testlf()
+ * Description: test for read large file (e.g. ls.txt).
+ * INPUT: NONE
+ * OUTPUT: NONE
+ * Return Value: fail (warning sentence) or sucess (nothing)
+ * Side Effects: clean the screen
+ */
 void file_read_testlf(){
 	uint8_t buf[5349];
 	int32_t result,i;
@@ -331,21 +353,32 @@ void file_read_testlf(){
 	printf("file_name: verylargetextwithverylongname.tx");
 } 
 
+/*
+ * print_out_all_files()
+ * Description: print out all the filename, corresponding file type and file name in the current file system.
+ * INPUT: NONE
+ * OUTPUT: NONE
+ * Return Value: fail (warning sentence) or sucess (nothing)
+ * Side Effects: clean the screen
+ */
 void print_out_all_files(){
 	uint32_t result,file_size,filename_length,i;
 	uint8_t buf[5349];
-	uint8_t filename_buf[33];
+	uint8_t filename_buf[33];  // used for print ou the filename with fix format
+	/* initialize the filname_buf */
 	filename_buf[32] = '\0';
 	for(i=0;i<32;i++){
 			filename_buf[i] = ' ';
-		}
+	}
 	clean_screen();
-	result = dir_open((uint8_t*)".");
+	result = dir_open((uint8_t*)"."); // try open the dir
 	if(result == -1){
 		printf("fail opening .\n");
 		return;
 	}
+	// if open successfully, print all the filename and corresponding file type and file size in the fix format
 	while(!dir_read(0,buf,0)){
+		// print file name
 		printf("file_name: ");
 		filename_length = strlen(glob_dentry_for_dirread.filename);
 		if(filename_length > 32) filename_length = 32;
@@ -353,32 +386,35 @@ void print_out_all_files(){
 			filename_buf[32-filename_length+i] = glob_dentry_for_dirread.filename[i];
 		}
 		puts((int8_t*)filename_buf);
+		// print file type
 		printf(", file_type: ");
 		printf("%d, ",glob_dentry_for_dirread.filetype);
 		file_size = ((inode_t*)boot_block + 1 + glob_dentry_for_dirread.inode_num)->length_of_file;
+		// print file size
 		printf("file_size:");
 		if(file_size < 10) printf("      ");
 		else if (file_size < 100)
 		{
-			printf("     ");/* code */
+			printf("     ");/* 5 spaces */
 		}
 		else if (file_size < 1000)
 		{
-			printf("    ");/* code */
+			printf("    ");/* 4 spaces */
 		}
 		else if (file_size < 10000)
 		{
-			printf("   ");/* code */
+			printf("   ");/* 3 spaces */
 		}
 		else if (file_size < 100000)
 		{
-			printf("  ");/* code */
+			printf("  ");/* 2 spaces */
 		}
 		else{
-			printf(" ");/* code */
+			printf(" ");/* 1 spaces */
 		}
 		printf("%d",file_size);
 		printf("\n");
+		// clear the filename buf for the next file
 		for(i=0;i<32;i++){
 			filename_buf[i] = ' ';
 		}

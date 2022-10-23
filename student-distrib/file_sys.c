@@ -3,7 +3,7 @@
 
 /*
  *  read_dentry_by_name
- *  DESCRIPTION: fetch a dentry with the given file name , can fetch the name of regular file and directory file
+ *  DESCRIPTION: fetch a dentry with the given file name , can fetch the name of all the three file types(regular file and directory file and RTC file)
  *  INPUTS:             fname  - the name of the file, which is assumed to be '\0' terminated 
  *                      denrty - put the message into this temporary dentry as return  
  *  OUTPUTS: NONE
@@ -22,19 +22,12 @@ int32_t read_dentry_by_name(const uint8_t*fname, dentry_t* dentry){
     /* if the fname is null or too long , return -1 */
     if(fname_length <=0 || fname_length > FILENAME_LEN) return -1;
    
-    /* if fname_lenght is 32B, copy to a new buff to make the strncmp work perfectly 
-    if(fname_length == FILENAME_LEN){
-        memcpy(fname_true,fname,fname_length);
-        fname_true[32] = '\0';
-        nul_flag = 1;
-        fname_length = FILENAME_LEN;
-    }*/
-
+    // go through each boot_block's dentry, looking for the dentry with the name fname
     for(i = 0; i < boot_block->dir_count; i++){
         // if the fname in the dentry is not null terminated which means it has exact 32 bytes for the name, no place for '\0'
         if(strlen(boot_block->direntries[i].filename) >= FILENAME_LEN){
             memcpy(fname_true,boot_block->direntries[i].filename,FILENAME_LEN);
-            fname_true[32] = '\0';
+            fname_true[32] = '\0'; // set the last char to null terminated
             nul_flag = 1;
         }
         // if the fname in this dentry is 32 B, compare the fname_true with the fname
@@ -78,10 +71,11 @@ int32_t read_denty_by_index(uint32_t index,dentry_t* dentry){
     if(index < 0 || index >= boot_block->dir_count){
         return -1;
     }
+    // if the filename is >= 32, then the filename would not be null terminated, therefore need to use fname_true
     if(strlen(boot_block->direntries[index].filename) >= FILENAME_LEN){
             memcpy(fname_true,boot_block->direntries[index].filename,FILENAME_LEN);
             fname_true[32] = '\0';
-            nul_flag = 1;
+            nul_flag = 1;  // set nul_flag to 1, indicating that the fname in the dentry is too long to have null terminated
     }
     if (nul_flag == 1){
         strcpy(dentry->filename,(const int8_t*)fname_true);
@@ -109,16 +103,25 @@ int32_t read_denty_by_index(uint32_t index,dentry_t* dentry){
  *                  i - the number of bits have read into the buf
  */                 
 int32_t read_data(uint32_t inode, uint32_t offset, uint8_t*buf, uint32_t length){
-    int i;
-    inode_t* current_inode_addr = (inode_t*)boot_block+inode+1;
+    
+    int32_t i,data_block_count;
+
+    data_block_count = boot_block->data_count;                  // obtain the maximum data block in this filesystem 
+    // first check if the inode is valid, if not return -1
     if(inode < 0 || inode >= boot_block->inode_count){
         return -1;
     }
-    int32_t data_block_id = offset / FOUR_KB;     // the index of the start  data block
-    int32_t data_id_in_block = offset % FOUR_KB;  // initialized as the index of the start data byte in the data block 
+    inode_t* current_inode_addr = (inode_t*)boot_block+inode+1; // obtain the current inode address, the file system's blocks are linear in address
+    int32_t data_id_in_block = offset % FOUR_KB;  // initialized as the index of the start data byte in the data block
+    int32_t data_block_id = offset / FOUR_KB;     // the index of the start  data block 
     // obtain the start data block
     data_block_t* read_data_block = (data_block_t*)data_block_addr + current_inode_addr->data_block_num[data_block_id];
+    // then check if the offset is beyond the scope of the file
     
+    if(offset >= current_inode_addr->length_of_file){
+        return 0;
+    }
+   
     for(i = 0; i < length; i++){
         // first check if the current byte is in the range of the file
         if (i + offset >= current_inode_addr->length_of_file ){
@@ -129,9 +132,9 @@ int32_t read_data(uint32_t inode, uint32_t offset, uint8_t*buf, uint32_t length)
         if(data_id_in_block >= FOUR_KB){
             data_block_id++;
             // check if the next data block eists, if not return -1 as failure
-            if(current_inode_addr->data_block_num[data_block_id] >= boot_block->data_count) return -1;
-            // if still in the range of the data block, update the ptr to the current read data block and the byte index
-            data_id_in_block = data_id_in_block % FOUR_KB;
+            if(current_inode_addr->data_block_num[data_block_id] >= data_block_count) return -1;
+             // if still in the range of the data block, update the ptr to the current read data block and the byte index
+            data_id_in_block = 0;
             read_data_block = (data_block_t*)(data_block_addr + current_inode_addr->data_block_num[data_block_id]);
         }
 
@@ -171,8 +174,8 @@ int32_t file_open(const uint8_t* filename){
 }
 /*
  *  file_close
- *  DESCRIPTION: close a data file 
- *  INPUTS:             filename  - the name of the file to be opened
+ *  DESCRIPTION: close a data file, undo what we did in file_open 
+ *  INPUTS:             fd  - the file descriptor of the file to close
  *  OUTPUTS: NONE
  *  SIDEEFFECT: NONE
  *  RETURN VALUE:       0  - close successfully
@@ -180,7 +183,8 @@ int32_t file_open(const uint8_t* filename){
  */
 int32_t file_close(int32_t fd){
     return 0;
-}/*
+}
+/*
  *  file_write
  *  DESCRIPTION: write into  a data file (not work since till now is read only)
  *  INPUTS:            fd  - file descriptor
@@ -237,7 +241,15 @@ int32_t dir_open(const uint8_t* filename){
     // otherwise return 0 as success
     return 0;
  }
-
+/*
+ *  dir_close
+ *  DESCRIPTION: close a file
+ *  INPUTS:             fd  - the file descriptor of the file to be closed
+ *  OUTPUTS: NONE
+ *  SIDEEFFECT: NONE
+ *  RETURN VALUE:       0  - close successfully
+ *                      -1 - fail closing 
+ */
 int32_t dir_close(int32_t fd){
     return 0;
 }
@@ -264,7 +276,18 @@ int32_t dir_read(int32_t fd, void* buf, int32_t nbytes){
     dir_index++;
     return result;
 }
-
+/*
+ *  dir_write
+ *  DESCRIPTION: write into  a data file (not work since till now is read only)
+ *  INPUTS:            fd  - file descriptor
+ *                     buf - the buffer for the bytes to be writen into the file
+ *                     nbytes - the number of bytes to write into 
+ *  OUTPUTS: NONE
+ *  SIDEEFFECT: NONE
+ *  RETURN VALUE:       
+ *                      -1 - fail writing
+ *                
+ */   
 int32_t dir_write(int32_t fd, const void* buf, int32_t nbytes){
     return -1;
 }
