@@ -319,7 +319,7 @@ void file_read_testexe(){
 	int32_t result,i,length;
 	i = 0;
 	clean_screen();
-	result = file_open((uint8_t*)"sigtest");
+	result = file_open((uint8_t*)"ls");
 	length = ((inode_t*)(boot_block + 1 + glob_dentry.inode_num))->length_of_file;
 	uint8_t buf[length];
 	file_close(0);

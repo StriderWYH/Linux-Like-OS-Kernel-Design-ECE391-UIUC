@@ -117,7 +117,8 @@ void keyboard_interrupt_handler()
         if (global_keyboard_index < 127)        //the 127 place of the buffer is '\0'
         {
             keyboard_buffer[global_keyboard_index++] = 32;  //32 for blank
-            print_stuff(32,global_keyboard_index);
+            putc(32);
+            //print_stuff(32,global_keyboard_index);
         }
         send_eoi(KEYBOARD_IRQ);
         return;
@@ -127,13 +128,17 @@ void keyboard_interrupt_handler()
         if (global_keyboard_index <= 127-4)
         {
             keyboard_buffer[global_keyboard_index++] = 32;  //32 for blank
-            print_stuff(32,global_keyboard_index);
+            putc(32);
+            //print_stuff(32,global_keyboard_index);
             keyboard_buffer[global_keyboard_index++] = 32;  //32 for blank
-            print_stuff(32,global_keyboard_index);
+            putc(32);
+            //print_stuff(32,global_keyboard_index);
             keyboard_buffer[global_keyboard_index++] = 32;  //32 for blank
-            print_stuff(32,global_keyboard_index);
+            putc(32);
+            //print_stuff(32,global_keyboard_index);
             keyboard_buffer[global_keyboard_index++] = 32;  //32 for blank
-            print_stuff(32,global_keyboard_index);
+            putc(32);
+            //print_stuff(32,global_keyboard_index);
         }
         send_eoi(KEYBOARD_IRQ);
         return;
@@ -208,7 +213,8 @@ void keyboard_interrupt_handler()
         if (global_keyboard_index < 127)    //if the buffer still have space 127 is the max
         {
             keyboard_buffer[global_keyboard_index++] = value;   //put the value in the buffer
-            print_stuff(value,global_keyboard_index);       //print the value
+            //print_stuff(value,global_keyboard_index);       //print the value
+            putc(value);
             //putc(value);
         }
     } 
@@ -267,8 +273,11 @@ int terminal_read(int nbytes){
     keyboard_flag = 0;                  // reset the flag to be used next time
     /////////////////// Maybe space for enter actions
     //putc((int)('\n')); // change the line
+
     if((global_keyboard_index) != 80){  // if the index is 80(last bit of the characr + 1), that should change one line
         change_line(1);
+        terminal_buffer[global_keyboard_index] = '\n';
+        byte_read++;
     }
    
 
@@ -292,8 +301,8 @@ int terminal_read(int nbytes){
         byte_read += 1;
         keyboard_buffer[i] = '\0'; // clear the buffer
     }
-    terminal_buffer[global_keyboard_index] = '\n';
-    byte_read++;
+    //terminal_buffer[global_keyboard_index] = '\n';
+    
     //printf("%d",&nbytes);
     global_keyboard_index = 0;
     return byte_read;
@@ -310,16 +319,16 @@ int terminal_write(int nbytes){
     //if (nbytes > 80)  scrolling(1);
 
     for(i = 0; i < nbytes; i++){
-        if((i == 80) & (terminal_buffer[i] != '\n')){    // if it meet the end of the line or user pressed an "enter" 80 is the end character of the line
-            change_line(1);
-        }
-        if(terminal_buffer[i] == '\n'){
-            change_line(1);
-        }
-        else{
-            putc(terminal_buffer[i]);
-        }
-
+        // if((i == 80) & (terminal_buffer[i] != '\n')){    // if it meet the end of the line or user pressed an "enter" 80 is the end character of the line
+        //     change_line(1);
+        // }
+        // if(terminal_buffer[i] == '\n'){
+        //     change_line(1);
+        // }
+        // else{
+        //     putc(terminal_buffer[i]);
+        // }
+        putc(terminal_buffer[i]);
         byte_write += 1;
         terminal_buffer[i] = '\0'; // clear the buffer
         update_cursor(0); // update the cursor by one place 

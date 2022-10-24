@@ -168,7 +168,7 @@ int32_t puts(int8_t* s) {
  * Return Value: void
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
-    if(c == '\n' || c == '\r' || (screen_x+1)%80 == 0) {
+    if(c == '\n' || c == '\r') {
         //screen_y++;
         //screen_x = 0;
         if(screen_y != NUM_ROWS - 1){
@@ -178,13 +178,29 @@ void putc(uint8_t c) {
         else{
             scrolling(0);  // if the line is the last line, scrolling down
         }
+        update_cursor(0);
         
-    } else {
+    } 
+    else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
-        screen_x++;
-        screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+
+        if((screen_x + 1)% 80 == 0){   // test if the next char should change line
+            if(screen_y != NUM_ROWS - 1){
+                screen_x = 0;
+                screen_y += 1;
+            }
+            else{
+                scrolling(0);  // if the line is the last line, scrolling down
+            }
+        }
+        else{
+            screen_x++;
+            screen_x %= NUM_COLS;
+            screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+        }
+        update_cursor(0);
+
     }
 }
 
