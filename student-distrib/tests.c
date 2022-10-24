@@ -315,19 +315,23 @@ void file_read_testsf(){
  * Side Effects: clean the screen
  */
 void file_read_testexe(){
-	uint8_t buf[5349];
-	int32_t result,i;
+	int32_t result,i,length;
 	i = 0;
 	clean_screen();
-	result = file_open((uint8_t*)"ls");
+	result = file_open((uint8_t*)"sigtest");
+	length = ((inode_t*)(boot_block + 1 + glob_dentry.inode_num))->length_of_file;
+	uint8_t buf[length];
 	file_close(0);
 	if(result == -1){
 		printf("fail opening ls\n");
 		return;
 	}
-	result = file_read(0,buf,5349);
-	while(i < 5349){
-		print_stuff(buf[i],i);
+	result = file_read(0,buf,length);
+	while(i < length){
+		if(buf[i] != '\0'){
+		//print_stuff(buf[i],i);
+		putc(buf[i]);
+		}
 		i++;
 	}
 	printf("\n");
@@ -342,7 +346,7 @@ void file_read_testexe(){
  * Side Effects: clean the screen
  */
 void file_read_testlf(){
-	uint8_t buf[5349];
+	uint8_t buf[10000];
 	int32_t result,i;
 	i = 0;
 	clean_screen();
@@ -352,9 +356,12 @@ void file_read_testlf(){
 		printf("fail opening verylargetextwithverylongname.tx\n");
 		return;
 	}
-	result = file_read(0,buf,5349);
-	while(i < 5349){
+	result = file_read(0,buf,10000);
+	while(i < 10000){
+		if(buf[i] != '\0'){
 		print_stuff(buf[i],i);
+		
+		}
 		i++;
 	}
 	printf("\n");
@@ -455,9 +462,9 @@ void launch_tests(){
 	//TEST_OUTPUT("kernel_paging_out_test", kernel_paging_out_test());
 
 	//PagingFault_test();
-	terminal_test();
+	//terminal_test();
 	//file_read_testsf();
-	//file_read_testexe();
+	file_read_testexe();
 	//file_read_testlf();
 	//print_out_all_files();
 	// launch your tests here
