@@ -466,6 +466,6 @@ void launch_tests(){
 	//file_read_testsf();
 	file_read_testexe();
 	//file_read_testlf();
-	//print_out_all_files();
+	print_out_all_files();
 	// launch your tests here
 }
