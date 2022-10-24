@@ -245,7 +245,8 @@ void rtc_test()
 		RTC_write(buffer_1);
 		RTC_read();
 		index_ds++;
-		print_stuff(122,index_ds);
+		putc(122);
+		//print_stuff(122,index_ds);
 		if((buffer_1[0] < 1024) && (i % 20 == 0))
 		{
 			buffer_1[0] = (buffer_1[0]) * 2;
@@ -346,21 +347,22 @@ void file_read_testexe(){
  * Side Effects: clean the screen
  */
 void file_read_testlf(){
-	uint8_t buf[10000];
-	int32_t result,i;
+	int32_t result,i,length;
 	i = 0;
 	clean_screen();
 	result = file_open((uint8_t*)"verylargetextwithverylongname.tx");
+	length = ((inode_t*)(boot_block + 1 + glob_dentry.inode_num))->length_of_file;
+	uint8_t buf[length];
 	file_close(0);
 	if(result == -1){
 		printf("fail opening verylargetextwithverylongname.tx\n");
 		return;
 	}
-	result = file_read(0,buf,10000);
-	while(i < 10000){
+	result = file_read(0,buf,length);
+	while(i < length){
 		if(buf[i] != '\0'){
-		print_stuff(buf[i],i);
-		
+		//print_stuff(buf[i],i);
+		putc(buf[i]);
 		}
 		i++;
 	}
@@ -464,8 +466,8 @@ void launch_tests(){
 	//PagingFault_test();
 	//terminal_test();
 	//file_read_testsf();
-	file_read_testexe();
+	//file_read_testexe();
 	//file_read_testlf();
-	print_out_all_files();
+	//print_out_all_files();
 	// launch your tests here
 }
