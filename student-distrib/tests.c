@@ -271,8 +271,9 @@ void terminal_test(){
 	terminal_open(0);
 	while(1){
 		int write;
-        write = terminal_read(global_keyboard_index);
-        terminal_write(write);
+		while(!keyboard_flag); 
+        write = terminal_read(0,keyboard_buffer,global_keyboard_index);
+        terminal_write(0,terminal_buffer,write);
 		//terminal_read();
 	}    
 	terminal_close(0);
@@ -464,7 +465,7 @@ void launch_tests(){
 	//TEST_OUTPUT("kernel_paging_out_test", kernel_paging_out_test());
 
 	//PagingFault_test();
-	//terminal_test();
+	terminal_test();
 	//file_read_testsf();
 	//file_read_testexe();
 	//file_read_testlf();

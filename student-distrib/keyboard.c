@@ -265,18 +265,22 @@ int terminal_close(int nbytes){
  * input: nbytes: bytes to be read
  * output: bytes that is successfully read
  */
-int terminal_read(int nbytes){
+int terminal_read(int32_t fd, void* buf, int32_t nbytes){
     int byte_read;
     int i = 0;
+    char * kb_buf =  (char*)buf;
     byte_read = 0;
+    if(strlen(kb_buf) >= 128) return -1;
+    if(nbytes >= 128) nbytes = 127;
+
     while(!keyboard_flag);              // wait untill the keyboard has entered a "enter"
     keyboard_flag = 0;                  // reset the flag to be used next time
     /////////////////// Maybe space for enter actions
     //putc((int)('\n')); // change the line
 
-    if((global_keyboard_index) != 80){  // if the index is 80(last bit of the characr + 1), that should change one line
+    if((nbytes) != 80){  // if the index is 80(last bit of the characr + 1), that should change one line
         change_line(1);
-        terminal_buffer[global_keyboard_index] = '\n';
+        terminal_buffer[nbytes] = '\n';
         byte_read++;
     }
    
@@ -286,7 +290,7 @@ int terminal_read(int nbytes){
 
     /////////////////// Maybe space for enter actions
 
-    for(i = 0; i < global_keyboard_index; i++){
+    for(i = 0; i < nbytes; i++){
         /*
         if(keyboard_buffer[i] == '\n'){ // when the enter is detected, end reading
             keyboard_buffer[i] = '\0';
@@ -294,17 +298,18 @@ int terminal_read(int nbytes){
         }
         */
         if(i >= 128){    // check for overflow
-            keyboard_buffer[i] = '\0';
+            kb_buf[i] = '\0';
             break;
         }
-        terminal_buffer[i] = keyboard_buffer[i];
+        terminal_buffer[i] = kb_buf[i];
         byte_read += 1;
-        keyboard_buffer[i] = '\0'; // clear the buffer
+        kb_buf[i] = '\0'; // clear the buffer
     }
     //terminal_buffer[global_keyboard_index] = '\n';
     
     //printf("%d",&nbytes);
-    global_keyboard_index = 0;
+    global_keyboard_index = 0; ////////////////////////////////////////////////pay much attention here, it will initialize the index
+    nbytes = 0;
     return byte_read;
 }
 /* terminal_write 
@@ -312,10 +317,11 @@ int terminal_read(int nbytes){
  * input: nbytes : bytes to be written
  * output: bytes that are successfully written
  */
-int terminal_write(int nbytes){
+int terminal_write(int32_t fd, void* buf, int32_t nbytes){
     int byte_write;
     int i = 0;
     byte_write = 0;
+    char * termi_buf = (char *)buf;
     //if (nbytes > 80)  scrolling(1);
 
     for(i = 0; i < nbytes; i++){
@@ -328,9 +334,9 @@ int terminal_write(int nbytes){
         // else{
         //     putc(terminal_buffer[i]);
         // }
-        putc(terminal_buffer[i]);
+        putc(termi_buf[i]);
         byte_write += 1;
-        terminal_buffer[i] = '\0'; // clear the buffer
+        termi_buf[i] = '\0'; // clear the buffer
         update_cursor(0); // update the cursor by one place 
     
     }

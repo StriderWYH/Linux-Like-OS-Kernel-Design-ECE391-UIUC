@@ -8,6 +8,7 @@
 #define KEYBOARD_CMD   0x64
 
 #define BUFFERSIZE 128
+#define TERMINAL_SIZE 1000
 
 #define TAB     0x0F
 #define CAPS    0x3A
@@ -22,7 +23,8 @@
 
 int global_keyboard_index;
 char keyboard_buffer[BUFFERSIZE];
-char terminal_buffer[BUFFERSIZE];
+char terminal_buffer[TERMINAL_SIZE];
+volatile int keyboard_flag;
 
 void special_button_status(unsigned int key);
 
@@ -34,7 +36,7 @@ void print_stuff(int value, int indexP);
 
 int terminal_open(int nbytes);
 int terminal_close(int nbytes);
-int terminal_read(int nbytes);
-int terminal_write(int nbytes);
+int terminal_read(int32_t fd, void* buf, int32_t nbytes);
+int terminal_write(int32_t fd, void* buf, int32_t nbytes);
 #endif
 
