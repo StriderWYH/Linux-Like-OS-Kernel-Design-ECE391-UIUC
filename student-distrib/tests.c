@@ -450,7 +450,7 @@ void launch_tests(){
 
 	//div_test();
 	//syscall_test();
-	//rtc_test();
+	rtc_test();
 
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("rtc_idt_entry test",idt_special_test_forRtc());
@@ -459,21 +459,16 @@ void launch_tests(){
 
 	//null_test();
 	//TEST_OUTPUT("VirtualMemory_paging_test", VirtualMemory_paging_test());
-	TEST_OUTPUT("VirtualMemory_paging_out_test()", VirtualMemory_paging_out_test());
+	//TEST_OUTPUT("VirtualMemory_paging_out_test()", VirtualMemory_paging_out_test());
 
 	//TEST_OUTPUT("Kernel_paging_test", Kernel_paging_test());
 	//TEST_OUTPUT("kernel_paging_out_test", kernel_paging_out_test());
 
-<<<<<<< HEAD
-	// PagingFault_test();
-	//terminal_test();
-=======
 	//PagingFault_test();
-	terminal_test();
+	//terminal_test();
 	//file_read_testsf();
 	//file_read_testexe();
 	//file_read_testlf();
 	//print_out_all_files();
->>>>>>> 3fa7efaa4148998f240b0c2310ca309dc427655f
 	// launch your tests here
 }
