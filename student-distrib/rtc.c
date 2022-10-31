@@ -3,7 +3,8 @@
 #include "i8259.h"
 
 volatile int RTC_interrupt;
-
+int time_counter;   //rtc virtualization
+volatile int virtual_frequency;       //rtc virtualization
 /*
  * introduction: initialize the rtc
  * input: none
@@ -27,10 +28,17 @@ void rtc_init()
  */
 void rtc_interrupt_handler()
 {
-    
-    outb(REGISTER_C,RTC_PORT);  //select register C
+    if (time_counter == 1024/virtual_frequency)     //rtc virtualization
+    {
+        RTC_interrupt = 1;
+    }
+    outb(0x0C,RTC_PORT);  //select register C
     inb(RTC_DATA_PORT); //throw away content
-    RTC_interrupt = 1;
+    time_counter++;     //rtc virtualization
+    if (time_counter > 1024/virtual_frequency)
+    {
+        time_counter = time_counter%(1024/virtual_frequency);       //rtc virtualization
+    }
     //test_interrupts();
     send_eoi(RTC_IRQ);
 }
@@ -86,8 +94,11 @@ int get_interrupt_rate(int frequency)
  */
 int RTC_open()
 {
-    int frequency = 2;
+    int frequency = 1024;
     int rate = get_interrupt_rate(frequency);
+    RTC_interrupt = 0;
+    time_counter = 0;
+    virtual_frequency = 2;
     set_frequency(rate);    //set 2 hz
     return 0;
 }
@@ -121,16 +132,19 @@ int RTC_read()
  */
 int RTC_write(void* buffer)
 {
-    int frequency;
-    int rate;
-    frequency = *((int*)buffer);    //get the new frequency
-    //printf("%d",frequency);
-    
-    rate = get_interrupt_rate(frequency);
-    if (rate == -1)     //if the frequency is not the power of 2 and not >2,<1024, return -1
-    {
-        return -1;      //if fail to set frequency, return -1
-    }
-    set_frequency(rate);
-    return 0;           //return 0 for success
+    // int frequency;
+    // int rate;
+    // frequency = *((int*)buffer);    //get the new frequency
+    // rate = get_interrupt_rate(frequency);
+    // if (rate == -1)     //if the frequency is not the power of 2 and not >2,<1024, return -1
+    // {
+    //     return -1;      //if fail to set frequency, return -1
+    // }
+    // set_frequency(rate);
+    // return 0;           //return 0 for success
+
+    /*rtc virtualization*/
+    virtual_frequency = *((int*)buffer);
+    time_counter = 0;
+    return 0;
 }

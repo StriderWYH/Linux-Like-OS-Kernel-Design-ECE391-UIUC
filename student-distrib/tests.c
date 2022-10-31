@@ -450,7 +450,7 @@ void launch_tests(){
 
 	//div_test();
 	//syscall_test();
-	//rtc_test();
+	rtc_test();
 
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("rtc_idt_entry test",idt_special_test_forRtc());
