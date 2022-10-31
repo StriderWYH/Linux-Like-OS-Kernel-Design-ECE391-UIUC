@@ -4,6 +4,7 @@
 #include "rtc.h"
 #include "i8259.h"
 #include "keyboard.h"
+#include "file_sys.h"
 #define PASS 1
 #define FAIL 0
 
@@ -224,34 +225,220 @@ void syscall_test() {
 }
 
 /*
- * int rtc_test()
- * Description: This function tests rtc interrupt handler.
- * Return Value: PASS
+ * void rtc_test()
+ * Description: This function call the rtc read and write and set frequency every 20 characters
+ * Return Value: none
  * Side Effects: rtc interrupts enabled
  */
  
-int rtc_test() {
+void rtc_test() 
+{
 	TEST_HEADER;
-	rtc_interrupt_handler();
+	int i = 0;
+	int index_ds = 0;
+	int buffer_1[1];
+	clean_screen();
+	buffer_1[0] = 2;
+	RTC_open();
+	while(1){
+		
+		RTC_write(buffer_1);
+		RTC_read();
+		index_ds++;
+		putc(122);
+		//print_stuff(122,index_ds);
+		if((buffer_1[0] < 1024) && (i % 20 == 0))
+		{
+			buffer_1[0] = (buffer_1[0]) * 2;
+		}
+		i++;
+	}
+	RTC_close();
+	//rtc_interrupt_handler();
 
-	return PASS;
+	//return PASS;
 }
 
 
 /* Checkpoint 2 tests */
 
+/* terminal_test()
+ * introduction: continusly call the read and write to test them
+ * input: none
+ * output: none
+ */
 void terminal_test(){
+	terminal_open(0);
 	while(1){
 		int write;
-        write = terminal_read(index);
-        terminal_write(write);
+		while(!keyboard_flag); 
+        write = terminal_read(0,keyboard_buffer,global_keyboard_index);
+        terminal_write(0,terminal_buffer,write);
 		//terminal_read();
 	}    
+	terminal_close(0);
 
 }
 
 
+/*
+ * file_read_testsf()
+ * Description: test for read small file (e.g. frame0.txt).
+ * INPUT: NONE
+ * OUTPUT: NONE
+ * Return Value: fail (warning sentence) or sucess (nothing)
+ * Side Effects: clean the screen
+ */
+void file_read_testsf(){
+	uint8_t buf[500];
+	int32_t result,i;
+	i = 0;
+	clean_screen();
+	result = file_open((uint8_t*)"frame0.txt");
+	file_close(0);
+	if(result == -1){
+		printf("fail opening frame0.txt\n");
+		return;
+	}
+	result = file_read(0,buf,500);
+	while((buf[i]) != '\0'){
+		putc(buf[i]);
+		i++;
+	}
+	printf("\n");
+	printf("file_name: fram0.txt");
+}
+/*
+ * file_read_testexe()
+ * Description: test for read exe file (e.g. ls.txt).
+ * INPUT: NONE
+ * OUTPUT: NONE
+ * Return Value: fail (warning sentence) or sucess (nothing)
+ * Side Effects: clean the screen
+ */
+void file_read_testexe(){
+	int32_t result,i,length;
+	i = 0;
+	clean_screen();
+	result = file_open((uint8_t*)"ls");
+	length = ((inode_t*)(boot_block + 1 + glob_dentry.inode_num))->length_of_file;
+	uint8_t buf[length];
+	file_close(0);
+	if(result == -1){
+		printf("fail opening ls\n");
+		return;
+	}
+	result = file_read(0,buf,length);
+	while(i < length){
+		if(buf[i] != '\0'){
+		//print_stuff(buf[i],i);
+		putc(buf[i]);
+		}
+		i++;
+	}
+	printf("\n");
+	printf("file_name: ls");
+}
+/*
+ * file_read_testlf()
+ * Description: test for read large file (e.g. ls.txt).
+ * INPUT: NONE
+ * OUTPUT: NONE
+ * Return Value: fail (warning sentence) or sucess (nothing)
+ * Side Effects: clean the screen
+ */
+void file_read_testlf(){
+	int32_t result,i,length;
+	i = 0;
+	clean_screen();
+	result = file_open((uint8_t*)"verylargetextwithverylongname.tx");
+	length = ((inode_t*)(boot_block + 1 + glob_dentry.inode_num))->length_of_file;
+	uint8_t buf[length];
+	file_close(0);
+	if(result == -1){
+		printf("fail opening verylargetextwithverylongname.tx\n");
+		return;
+	}
+	result = file_read(0,buf,length);
+	while(i < length){
+		if(buf[i] != '\0'){
+		//print_stuff(buf[i],i);
+		putc(buf[i]);
+		}
+		i++;
+	}
+	printf("\n");
+	printf("file_name: verylargetextwithverylongname.tx");
+} 
 
+/*
+ * print_out_all_files()
+ * Description: print out all the filename, corresponding file type and file name in the current file system.
+ * INPUT: NONE
+ * OUTPUT: NONE
+ * Return Value: fail (warning sentence) or sucess (nothing)
+ * Side Effects: clean the screen
+ */
+void print_out_all_files(){
+	uint32_t result,file_size,filename_length,i;
+	uint8_t buf[5349];
+	uint8_t filename_buf[33];  // used for print ou the filename with fix format
+	/* initialize the filname_buf */
+	filename_buf[32] = '\0';
+	for(i=0;i<32;i++){
+			filename_buf[i] = ' ';
+	}
+	clean_screen();
+	result = dir_open((uint8_t*)"."); // try open the dir
+	if(result == -1){
+		printf("fail opening .\n");
+		return;
+	}
+	// if open successfully, print all the filename and corresponding file type and file size in the fix format
+	while(!dir_read(0,buf,0)){
+		// print file name
+		printf("file_name: ");
+		filename_length = strlen(glob_dentry_for_dirread.filename);
+		if(filename_length > 32) filename_length = 32;
+		for(i = 0; i <filename_length ;i++){
+			filename_buf[32-filename_length+i] = glob_dentry_for_dirread.filename[i];
+		}
+		puts((int8_t*)filename_buf);
+		// print file type
+		printf(", file_type: ");
+		printf("%d, ",glob_dentry_for_dirread.filetype);
+		file_size = ((inode_t*)boot_block + 1 + glob_dentry_for_dirread.inode_num)->length_of_file;
+		// print file size
+		printf("file_size:");
+		if(file_size < 10) printf("      ");
+		else if (file_size < 100)
+		{
+			printf("     ");/* 5 spaces */
+		}
+		else if (file_size < 1000)
+		{
+			printf("    ");/* 4 spaces */
+		}
+		else if (file_size < 10000)
+		{
+			printf("   ");/* 3 spaces */
+		}
+		else if (file_size < 100000)
+		{
+			printf("  ");/* 2 spaces */
+		}
+		else{
+			printf(" ");/* 1 spaces */
+		}
+		printf("%d",file_size);
+		printf("\n");
+		// clear the filename buf for the next file
+		for(i=0;i<32;i++){
+			filename_buf[i] = ' ';
+		}
+	}
+
+}
 /* Checkpoint 3 tests */
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
@@ -263,7 +450,7 @@ void launch_tests(){
 
 	//div_test();
 	//syscall_test();
-
+	//rtc_test();
 
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("rtc_idt_entry test",idt_special_test_forRtc());
@@ -277,7 +464,16 @@ void launch_tests(){
 	//TEST_OUTPUT("Kernel_paging_test", Kernel_paging_test());
 	//TEST_OUTPUT("kernel_paging_out_test", kernel_paging_out_test());
 
+<<<<<<< HEAD
 	// PagingFault_test();
 	//terminal_test();
+=======
+	//PagingFault_test();
+	terminal_test();
+	//file_read_testsf();
+	//file_read_testexe();
+	//file_read_testlf();
+	//print_out_all_files();
+>>>>>>> 3fa7efaa4148998f240b0c2310ca309dc427655f
 	// launch your tests here
 }

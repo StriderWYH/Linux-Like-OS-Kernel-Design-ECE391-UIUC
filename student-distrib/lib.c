@@ -169,14 +169,38 @@ int32_t puts(int8_t* s) {
  *  Function: Output a character to the console */
 void putc(uint8_t c) {
     if(c == '\n' || c == '\r') {
-        screen_y++;
-        screen_x = 0;
-    } else {
+        //screen_y++;
+        //screen_x = 0;
+        if(screen_y != NUM_ROWS - 1){
+            screen_x = 0;
+            screen_y += 1;
+        }
+        else{
+            scrolling(0);  // if the line is the last line, scrolling down
+        }
+        update_cursor(0);
+        
+    } 
+    else {
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
         *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
-        screen_x++;
-        screen_x %= NUM_COLS;
-        screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+
+        if((screen_x + 1)% 80 == 0){   // test if the next char should change line
+            if(screen_y != NUM_ROWS - 1){
+                screen_x = 0;
+                screen_y += 1;
+            }
+            else{
+                scrolling(0);  // if the line is the last line, scrolling down
+            }
+        }
+        else{
+            screen_x++;
+            screen_x %= NUM_COLS;
+            screen_y = (screen_y + (screen_x / NUM_COLS)) % NUM_ROWS;
+        }
+        update_cursor(0);
+
     }
 }
 
@@ -478,20 +502,31 @@ void test_interrupts(void) {
 
 ////////////////////////////////////////////////////////////////////////////
 // the function below is written by me for cursor
+
+/* enable_cursor
+ * introduction: enable the cursor
+ * input: nbytes :cursor_start, cursor_end the pos that should be written
+ * output: enable the cursor
+ */
 void enable_cursor(uint8_t cursor_start, uint8_t cursor_end)
 {
-    outb(0x0A, 0x3D4);
+    outb(0x0A, 0x3D4);  // 0x0A is the start signal, 0x3D4 is the port of the cursor
 
 	//outb(0x3D5, (inb(0x3D5) & 0xC0) | cursor_start);
 	outb((inb(0x3D5) & 0xC0) | cursor_start, 0x3D5);
  
 	//outb(0x3D4, 0x0B);
-    outb(0x0B, 0x3D4);
+    outb(0x0B, 0x3D4);  // 0x0B is the end signal
 
 	//outb(0x3D5, (inb(0x3D5) & 0xE0) | cursor_end);
     outb((inb(0x3D5) & 0xE0) | cursor_end, 0x3D5);
 }
 
+/* disable_cursor 
+ * introduction: disable the cursor
+ * input: 
+ * output: 
+ */
 void disable_cursor()
 {
 	//outb(0x3D4, 0x0A);
@@ -500,14 +535,19 @@ void disable_cursor()
     outb(0x20, 0x3D5);
 }
 
+/* update the cursor
+ * introduction: update the cursor's pos according to the offset to the character that is currently displayed
+ * input: offset: the distance with the current character
+ * output: none
+ */
 void update_cursor(int offset)
 {
-	uint16_t pos = NUM_COLS * screen_y + screen_x + offset; /// the offset is not sure
+	uint16_t pos = NUM_COLS * screen_y + screen_x + offset; // the offset is not sure
     //*(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1)) = c;
     //*(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
  
 	//outb(0x3D4, 0x0F);
-    outb(0x0F, 0x3D4);
+    outb(0x0F, 0x3D4);   
 	//outb(0x3D5, (uint8_t) (pos & 0xFF));
     outb((uint8_t) (pos & 0xFF), 0x3D5);
 	//outb(0x3D4, 0x0E);
@@ -517,6 +557,11 @@ void update_cursor(int offset)
 	
 }
 
+/* get_cursor_position()
+ * introduction: get the current cursor's pos
+ * input: none
+ * output: pos: the position of the cursor
+ */
 uint16_t get_cursor_position(void)
 {
     uint16_t pos = 0;
@@ -529,38 +574,48 @@ uint16_t get_cursor_position(void)
     return pos;
 }
 
+/* scrolling()
+ * introduction: scroll down by one line, make the screen move up by one line
+ * input: mode(for special cases)
+ * output: none
+ */
 void scrolling(int mode){
     int x,y;
-    if((mode == 1) && (screen_y != NUM_ROWS - 1)) {
+    if((mode == 1) && (screen_y != NUM_ROWS - 1)) {   // if the y not reach the final line
         return;
     }
-    for (y = 1; y < NUM_ROWS; y++){
+    for (y = 1; y < NUM_ROWS; y++){   // make everything go down by one line
         for (x = 0; x < NUM_COLS; x++){
             *(uint8_t *)(video_mem + ((NUM_COLS * (y - 1) + x) << 1)) = *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1));
             //*(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x) << 1) + 1) = ATTRIB;
         }
     }
 
-    for (x = 0; x < NUM_COLS; x++){
+    for (x = 0; x < NUM_COLS; x++){   // for the final line, let all of them go down by one line
         *(uint8_t *)(video_mem + ((NUM_COLS * (NUM_ROWS-1) + x) << 1)) = ' ';
         //*(uint8_t *)(video_mem + ((NUM_COLS * (NUM_ROWS-1) + x) << 1) + 1) = ATTRIB;
     }
     // if(screen_x != NUM_COLS -1){
     //     screen_y -= 1;
     // }
-    if((mode == 1) && (screen_y == NUM_ROWS - 1)) {
+    if((mode == 1) && (screen_y == NUM_ROWS - 1)) {   // not go into use
         screen_y -= 1;
     }
-    screen_x = 0;
+    screen_x = 0;   // reset the screen_x to the init pos
     //screen_y -= 1;   // this is not sure
 }
 
+/* clean_screen
+ * introduction: clear the screen 
+ * input: none
+ * output: none
+ */
 void clean_screen(void){
-    screen_x = 0;
+    screen_x = 0;   // reset the x,y pos
     screen_y = 0;
-    update_cursor(0);
+    update_cursor(0); // update the cursor
     int x,y;
-    for (y = 0; y < NUM_ROWS; y++){
+    for (y = 0; y < NUM_ROWS; y++){  // clean them one by one
         for (x = 0; x < NUM_COLS; x++){
             *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1)) = ' ';
             *(uint8_t *)(video_mem + ((NUM_COLS * y + x) << 1) + 1) = ATTRIB;
@@ -570,28 +625,34 @@ void clean_screen(void){
     
 }
 // if choice == 1, that means go down by 1 line; if choice == -1, that means go up by one line
+
+/* change_line
+ * introduction: change to next or last line, depend on choice
+ * input: choice : 1 for changing to next line; -1 for changing to last line ( delete)
+ * output: none
+ */
 void change_line(int choice){
-    if(choice == 1){
+    if(choice == 1){  // if moving to down line
         
         if(screen_y != NUM_ROWS - 1){
             screen_x = 0;
             screen_y += 1;
         }
         else{
-            scrolling(0);
+            scrolling(0);  // if the line is the last line, scrolling down
         }
     }
-    else if(choice == -1){
-        if((screen_x == 0) & (screen_y > 0)){
+    else if(choice == -1){  // if moving up 
+        if((screen_x == 0) & (screen_y > 0)){   // if this is not the first line, go back to last line
             *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x-1) << 1)) = ' ';
             *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x-1) << 1) + 1) = ATTRIB;
             screen_x = NUM_COLS - 1; 
             screen_y -= 1;
         }
-        else if((screen_x == 0) & (screen_y == 0)){
+        else if((screen_x == 0) & (screen_y == 0)){   // if it is the first line and the first character return and do nothing
             return;
         }
-        else{
+        else{     // otherwise, delte the last character
             *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x -1) << 1)) = ' ';
             *(uint8_t *)(video_mem + ((NUM_COLS * screen_y + screen_x -1) << 1) + 1) = ATTRIB;
             screen_x -= 1;

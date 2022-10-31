@@ -79,33 +79,54 @@ int get_interrupt_rate(int frequency)
 }
 
 
-
-
+/* RTC_open
+ * introduction: open the rtc, intialize it and set the frequency to 2hz
+ * input: none
+ * output: 0 for success ,can't fail
+ */
 int RTC_open()
 {
     int frequency = 2;
     int rate = get_interrupt_rate(frequency);
-    set_frequency(rate);
+    set_frequency(rate);    //set 2 hz
     return 0;
 }
 
+/* RTC_close
+ * introduction: close the rtc
+ * input: none
+ * output: 0 for success ,can't fail
+ */
 int RTC_close()
 {
     return 0;
 }
 
+/* RTC_read
+ * introduction: read the rtc, wait until receive the RTC_interrupt signal
+ * input: none
+ * output: 0 for success ,can't fail
+ */
 int RTC_read()
 {
-    while(RTC_interrupt == 0){}
+    while(RTC_interrupt == 0){}     //wait for the interrupt
     RTC_interrupt = 0;
     return 0;
 }
 
-
+/* RTC_write
+ * introduction: write the rtc, set an other frequency for rtc
+ * input: void* buffer (contains the frequency)
+ * output: 0 for success, 1 for fail, if the frequency is not the power of 2, fail
+ */
 int RTC_write(void* buffer)
 {
-    int frequency = *((int*)buffer);
-    int rate = get_interrupt_rate(frequency);
+    int frequency;
+    int rate;
+    frequency = *((int*)buffer);    //get the new frequency
+    //printf("%d",frequency);
+    
+    rate = get_interrupt_rate(frequency);
     if (rate == -1)     //if the frequency is not the power of 2 and not >2,<1024, return -1
     {
         return -1;      //if fail to set frequency, return -1

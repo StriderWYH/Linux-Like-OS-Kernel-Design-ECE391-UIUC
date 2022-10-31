@@ -21,5 +21,10 @@ int kernel_paging_out_test();
 
 //check point 2
 void terminal_test();
+void file_read_testsf();
+void file_read_testexe();
+void file_read_testlf();
+void print_out_all_files();
 //int rtc_test();
+void rtc_test();
 #endif /* TESTS_H */
