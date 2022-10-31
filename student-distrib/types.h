@@ -33,6 +33,10 @@ typedef struct dentry_t dentry_t;
 typedef struct inode_t inode_t;
 typedef struct boot_block_t boot_block_t;
 typedef struct data_block_t data_block_t;
+
+//***************************************************************************************************************
+typedef struct pcb_t pcb_t;
+typedef struct fd_t fd_t;
 #endif /* ASM */
 
 #endif /* _TYPES_H */
