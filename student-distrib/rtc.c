@@ -39,6 +39,7 @@ void rtc_interrupt_handler()
     {
         time_counter = time_counter%(1024/virtual_frequency);       //rtc virtualization
     }
+
     //test_interrupts();
     send_eoi(RTC_IRQ);
 }
