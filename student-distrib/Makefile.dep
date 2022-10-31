@@ -1,0 +1,13 @@
+boot.o: boot.S multiboot.h x86_desc.h types.h
+key_sd.o: key_sd.S
+x86_desc.o: x86_desc.S x86_desc.h types.h
+i8259.o: i8259.c i8259.h types.h lib.h
+idt.o: idt.c x86_desc.h types.h idt.h rtc.h keyboard.h lib.h key_sd.h
+kernel.o: kernel.c multiboot.h types.h x86_desc.h lib.h i8259.h debug.h \
+  tests.h page.h keyboard.h rtc.h idt.h
+keyboard.o: keyboard.c keyboard.h types.h lib.h i8259.h
+lib.o: lib.c lib.h types.h
+page.o: page.c page.h x86_desc.h types.h lib.h
+rtc.o: rtc.c rtc.h types.h lib.h i8259.h
+tests.o: tests.c tests.h x86_desc.h types.h lib.h rtc.h i8259.h \
+  keyboard.h

@@ -272,12 +272,12 @@ void launch_tests(){
 
 	//null_test();
 	//TEST_OUTPUT("VirtualMemory_paging_test", VirtualMemory_paging_test());
-	//TEST_OUTPUT("VirtualMemory_paging_out_test()", VirtualMemory_paging_out_test());
+	TEST_OUTPUT("VirtualMemory_paging_out_test()", VirtualMemory_paging_out_test());
 
 	//TEST_OUTPUT("Kernel_paging_test", Kernel_paging_test());
 	//TEST_OUTPUT("kernel_paging_out_test", kernel_paging_out_test());
 
 	// PagingFault_test();
-	terminal_test();
+	//terminal_test();
 	// launch your tests here
 }
