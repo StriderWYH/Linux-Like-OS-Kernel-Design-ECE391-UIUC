@@ -4,6 +4,7 @@
         "lib.h": "c",
         "key_sd.h": "c",
         "types.h": "c",
-        "i8259.h": "c"
+        "i8259.h": "c",
+        "systemcall.h": "c"
     }
 }

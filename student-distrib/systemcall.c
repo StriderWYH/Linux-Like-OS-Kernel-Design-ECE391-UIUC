@@ -95,3 +95,18 @@ int32_t execute(const uint8_t* command) {
     // 5. create pcb
     // 6. context switch
 }
+
+/*
+ *  open
+ *  DESCRIPTION: do the open operation for any kind of the file, and assaign a free fd to it
+ *  INPUTS:             fname  - the name of the file, which is assumed to be '\0' terminated                  
+ *  OUTPUTS: NONE
+ *  SIDEEFFECT: NONE
+ *  RETURN VALUE:       0  - open the file with the file name fname successfully
+ *                      -1 - the fname is too long or null or no such file called fname or open fails
+ */
+int32_t open( const uint8_t* filename){
+
+
+}
+
