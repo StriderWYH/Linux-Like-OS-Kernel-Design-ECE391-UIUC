@@ -37,9 +37,8 @@ struct pcb_t
 
 struct fd_t
 {
-    int32_t (*fop_jump_table[4])();
+    fop_table* optable_ptr;
     int32_t inode;
-    int32_t file_type;
     int32_t file_position;
     uint32_t flags;
 };
