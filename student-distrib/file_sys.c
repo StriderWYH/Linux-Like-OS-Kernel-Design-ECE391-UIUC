@@ -216,6 +216,7 @@ int32_t file_write(int32_t fd, const void* buf, int32_t nbytes){
  */                                         
 int32_t file_read(int32_t fd,void* buf, int32_t nbytes){
     int32_t result,offset,inode_n;
+    int esp;
     // int32_t length
     // fetch the address of the current PCB
     asm("movl %%esp, %0" : "=r"(esp) :);

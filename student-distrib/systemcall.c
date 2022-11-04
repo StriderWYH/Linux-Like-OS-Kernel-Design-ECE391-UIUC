@@ -259,43 +259,8 @@ int32_t open( const uint8_t* filename){
 
     return fd;
 }
-/*
- *  close
- *  DESCRIPTION: do the close operation for any kind of the file except for stdin and stdout, 
- *               and makes it available for return from later call to open
- *  INPUTS:             fname  - the name of the file, which is assumed to be '\0' terminated                  
- *  OUTPUTS: NONE
- *  SIDEEFFECT: NONE
- *  RETURN VALUE:       fd - (0-7)the fd index of the opened file, means open the file with the file name fname successfully
- *                      -1 - the fname is too long or null or no such file called fname or open fails
- */
-int32_t close(int32_t fd){
-    int result;
-    int esp;
-    // should not close the stdin and stdout, or the fd is out of range
-    if(fd == 0 || fd == 1 || fd >=8 || fd <0) return -1;
-    // fetch the address of the current PCB
-    asm("movl %%esp, %0" : "=r"(esp) :);
-    pcb_t *pcb = (pcb_t *)( esp & PCB_MSK);
-    // if the file is not in use, close fails
-    if(pcb->file_array[fd].flags == 0) return -1;
-}
 
-int32_t write(int32_t fd, const void* buf, int32_t nbytes)
-{
-    int esp;
-    asm("movl %%esp, %0" : "=r"(esp) :);
-    pcb_t* pcb = (pcb_t*)(esp & 0x7FE000);
-    if ((fd<0) || (fd>7) || (buf==NULL) || (nbytes<0))
-    {
-        return -1;
-    }
-    if (pcb->file_array[fd].flags == 0)
-    {
-        return -1;
-    }
-    return pcb->file_array[fd].optable_ptr->write(fd,buf,nbytes);
-}
+
 /*
  *  close
  *  DESCRIPTION: do the close operation for any kind of the file except for stdin and stdout, 
@@ -308,6 +273,7 @@ int32_t write(int32_t fd, const void* buf, int32_t nbytes)
  */
 int32_t close(int32_t fd){
     int result;
+    int esp;
     // should not close the stdin and stdout, or the fd is out of range
     if(fd == 0 || fd == 1 || fd >=8 || fd <0) return -1;
     // fetch the address of the current PCB
