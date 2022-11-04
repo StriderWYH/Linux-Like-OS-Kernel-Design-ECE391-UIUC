@@ -6,11 +6,15 @@
 #include "rtc.h"
 
 #define MAX_PROC    6
-#define SIZE_OF_4MB    kernel
-#define SIZE_OF_8MB    0x800000
-#define SIZE_OF_8KB    4192
+#define SIZE_OF_4MB     kernel
+#define SIZE_OF_8MB     0x800000
+#define SIZE_OF_8KB     0x2000
+#define SIZE_OF_128MB   0x8000000
 #define PROGRAM_IMAGE   0x8048000
 #define VIRTUAL_START   32
+#define KERNEL_MEM_END  0x800000 
+#define WORD_SIZE       4
+
 int32_t process_table[MAX_PROC] = {0,0,0,0,0,0};
 // int32_t (*file_table[3][4])() = {
 // {RTC_read, RTC_write, RTC_open, RTC_close},
@@ -35,6 +39,7 @@ int32_t execute(const uint8_t* command) {
     int space_counter = 0;
     int start_valid = 0;
     int cmd_length = 0;
+    int esp, ebp;
     //****************************************************************
     //variables
     int index;
@@ -116,9 +121,51 @@ int32_t execute(const uint8_t* command) {
     }
     strncpy(new_pcb->args,arg,100);
     new_pcb->pid = index;
-    //new_pcb->file_array[0].fop_jump_table = 
 
+    // fill up the stdin and stdout file
+
+    new_pcb->file_array[0].inode = -1;                   // this field shouldn't be used
+    new_pcb->file_array[0].file_position = 0;
+    new_pcb->file_array[0].flags = 1;
+    new_pcb->file_array[0].optable_ptr = &stdin_op;
+    // stdout file
+    new_pcb->file_array[1].inode = -1;                   // this field shouldn't be used
+    new_pcb->file_array[1].file_position = 0;
+    new_pcb->file_array[1].flags = 1;
+    new_pcb->file_array[1].optable_ptr = &stdout_op;
+    //new_pcb->file_array[0].fop_jump_table = 
+    for( i = 0; i < 6; i++){
+        new_pcb->file_array[i+2].flags = 0;
+        new_pcb->file_array[i+2].inode = -1;  
+        new_pcb->file_array[i+2].file_position = 0;
+    }
+    asm("movl %%ebp, %0" : "=r"(ebp) :);
+    new_pcb->parent_ebp = ebp;
+    asm("movl %%esp, %0" : "=r"(esp) :);
+    new_pcb->parent_esp = esp;
+    
     // 6. context switch
+    tss.ss0 = KERNEL_DS;
+    tss.esp0 = KERNEL_MEM_END - (index) * SIZE_OF_8KB - WORD_SIZE;
+    asm volatile(
+        "xorl %%eax, %%eax;"
+        "movw %w0, %%ax;"
+        "movw %%ax, %%ds;"
+        "pushl %%eax;"          // push the user data segment information
+        "pushl %1;"             // push user program esp
+        "pushfl;"               // push eflags
+        "popl %%eax;"           // manually enable the interrupt
+        "orl $0x200, %%eax;"
+        "pushl %%eax;"
+        "pushl %2;"             // push code segment information
+        "pushl %3;"             // push user program eip
+        "iret;"
+        "return_to_execute:;"
+        : /* no outputs */
+        : "g" (USER_DS), "g" (SIZE_OF_128MB + SIZE_OF_4MB - WORD_SIZE), "g" (USER_CS), "g" (code_eip)
+        : "eax"
+    );
+    return 0;
 }
 
 /*
