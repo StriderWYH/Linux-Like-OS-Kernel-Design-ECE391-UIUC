@@ -122,16 +122,122 @@ int32_t execute(const uint8_t* command) {
 }
 
 /*
+ *  bad_call_open
+ *  DESCRIPTION: used for terminal, do nothing but return -1
+ * 
+ */
+int32_t bad_call_open(const uint8_t* filename){
+    return -1;
+}
+/*
+ *  bad_call_close
+ *  DESCRIPTION: used for terminal, do nothing but return -1
+ * 
+ */
+int32_t bad_call_close(int32_t fd){
+    return -1;
+}
+/*
  *  open
  *  DESCRIPTION: do the open operation for any kind of the file, and assaign a free fd to it
  *  INPUTS:             fname  - the name of the file, which is assumed to be '\0' terminated                  
  *  OUTPUTS: NONE
  *  SIDEEFFECT: NONE
- *  RETURN VALUE:       0  - open the file with the file name fname successfully
+ *  RETURN VALUE:       fd - (0-7)the fd index of the opened file, means open the file with the file name fname successfully
  *                      -1 - the fname is too long or null or no such file called fname or open fails
  */
 int32_t open( const uint8_t* filename){
+    int32_t fd,cur_file_type,result;
+    dentry_t cur_dentry;
 
+    // fetch the address of the current PCB
+    asm("movl %%esp, %0" : "=r"(esp) :);
+    pcb_t *pcb = (pcb_t *)( esp & PCB_MSK);
 
+    // check if the filename is valid
+    if(filename == NULL) return -1;
+
+    // find the free descriptor 
+    for(fd = 2; fd< 8;fd++){
+        if(pcb->file_array[fd].flags == 0){
+            break;
+        }
+    }
+    // check whether the fdarray is full 
+    if(fd == 8) return -1;
+    
+    // stdin and stdout use fixed file descriptor index for each of them
+    if(!strncmp((int8_t*)filename, (int8_t*)"stdin",5)){
+        pcb->file_array[0].optable_ptr = &stdin_op;
+        pcb->file_array[0].flags = 1;
+        return 0;
+    }
+    if(!strncmp((int8_t*)filename, (int8_t*)"stdout",6)){
+        pcb->file_array[1].optable_ptr = &stdout_op;
+        pcb->file_array[1].flags = 1;
+        return 1;
+    }
+
+    // if the filename(other than stdin or stdout) doesn't exist, return -1
+    result = read_dentry_by_name(filename,&cur_dentry);
+    if(result == -1) return -1;
+    // if valid, update the type
+    cur_file_type =  cur_dentry.filetype;
+
+    // based on the type of the file, assign corresponding element to the current fd.
+    switch (cur_file_type)
+    {
+    case 0:
+        /* RTC file */
+        pcb->file_array[fd].flags = 1;
+        pcb->file_array[fd].optable_ptr = &rtc_op;
+        pcb->file_array[fd].file_position = 0;
+        break;
+    case 1:
+        /* dir file*/
+        pcb->file_array[fd].flags = 1;
+        pcb->file_array[fd].optable_ptr = &dir_op;
+        pcb->file_array[fd].file_position = 0;
+        break;
+     case 2:
+        /* regular file*/
+        pcb->file_array[fd].flags = 1;
+        pcb->file_array[fd].optable_ptr = &regular_op;
+        pcb->file_array[fd].file_position = 0;
+        pcb->file_array[fd].inode = cur_dentry.inode_num;
+        break;
+    default:
+        return -1;
+    }
+
+    return fd;
 }
+/*
+ *  close
+ *  DESCRIPTION: do the close operation for any kind of the file except for stdin and stdout, 
+ *               and makes it available for return from later call to open
+ *  INPUTS:             fname  - the name of the file, which is assumed to be '\0' terminated                  
+ *  OUTPUTS: NONE
+ *  SIDEEFFECT: NONE
+ *  RETURN VALUE:       fd - (0-7)the fd index of the opened file, means open the file with the file name fname successfully
+ *                      -1 - the fname is too long or null or no such file called fname or open fails
+ */
+int32_t close(int32_t fd){
+    int result;
+    // should not close the stdin and stdout, or the fd is out of range
+    if(fd == 0 || fd == 1 || fd >=8 || fd <0) return -1;
+    // fetch the address of the current PCB
+    asm("movl %%esp, %0" : "=r"(esp) :);
+    pcb_t *pcb = (pcb_t *)( esp & PCB_MSK);
+    // if the file is not in use, close fails
+    if(pcb->file_array[fd].flags == 0) return -1;
 
+    result = pcb->file_array[fd].optable_ptr->close(fd);
+    if(result == 0){
+        pcb->file_array[fd].flags = 0;
+        pcb->file_array[fd].optable_ptr = NULL;
+        pcb->file_array[fd].file_position = 0;
+    }
+
+    return -1;
+}
