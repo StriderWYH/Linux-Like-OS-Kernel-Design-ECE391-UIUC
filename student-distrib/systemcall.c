@@ -3,13 +3,20 @@
 #include "i8259.h"
 #include "file_sys.h"
 #include "page.h"
+#include "rtc.h"
 
 #define MAX_PROC    6
 #define SIZE_OF_4MB    kernel
+#define SIZE_OF_8MB    0x800000
+#define SIZE_OF_8KB    4192
 #define PROGRAM_IMAGE   0x8048000
 #define VIRTUAL_START   32
 int32_t process_table[MAX_PROC] = {0,0,0,0,0,0};
-
+// int32_t (*file_table[3][4])() = {
+// {RTC_read, RTC_write, RTC_open, RTC_close},
+// {dir_read, dir_write, dir_open, dir_close},
+// {file_read, file_write, file_open, file_close}
+// };
 int32_t execute(const uint8_t* command) {
     // 1. parse arguments
     uint8_t fname[FNAME_SIZE];
@@ -21,6 +28,7 @@ int32_t execute(const uint8_t* command) {
         MAGIC_ONE, MAGIC_TWO, MAGIC_THREE, MAGIC_FOUR
     };
     uint32_t code_eip = 0;
+    pcb_t * parent_pcb;
     int i = 0; // The index for command
     int j = 0; // The index for fname
     int z = 0; // The index for argument
@@ -64,13 +72,17 @@ int32_t execute(const uint8_t* command) {
 
     // check if the four magic numbers are correct
     if(!read_data(dentry.inode_num, 0, buf, FOUR_BYTE)) return -1;
+    if(strncmp((const int8_t*)buf, "ELF", BUFSIZE)) return -1;
+    /*
     for (i = 0; i < FOUR_BYTE; i++) {
         if (buf[i] != exe_check[i])
             return -1;
     }
+    */
     // get the entry point of the executable
     read_data(dentry.inode_num, 24, buf, FOUR_BYTE);
     code_eip = *((uint32_t*)buf);
+    
     // 3. set up program paging
     for (index = 0; index <= MAX_PROC; index ++){
         if (index == MAX_PROC){
@@ -93,5 +105,18 @@ int32_t execute(const uint8_t* command) {
     // 4. user-level program loader
     read_data(dentry.inode_num, 0, (uint8_t*)(PROGRAM_IMAGE), SIZE_OF_4MB);
     // 5. create pcb
+    pcb_t * new_pcb =  (pcb_t*)(SIZE_OF_8MB - (index + 1) * SIZE_OF_8KB);
+    if (index == 0){
+        parent_pcb = NULL; // there is no process before
+        new_pcb->parent_pid = index;
+    }
+    else{
+        parent_pcb = (pcb_t*)(SIZE_OF_8MB - index * SIZE_OF_8KB);    // parent is the last process
+        new_pcb->parent_pid = parent_pcb->pid;     // copy the parent pid
+    }
+    strncpy(new_pcb->args,arg,100);
+    new_pcb->pid = index;
+    //new_pcb->file_array[0].fop_jump_table = 
+
     // 6. context switch
 }
