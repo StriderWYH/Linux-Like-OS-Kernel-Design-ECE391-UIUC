@@ -37,9 +37,8 @@ struct pcb_t
 
 struct fd_t
 {
-    int32_t (*fop_jump_table[4])();
+    fop_table* optable_ptr;
     int32_t inode;
-    int32_t file_type;
     int32_t file_position;
     uint32_t flags;
 };
@@ -63,6 +62,7 @@ fop_table rtc_op = { RTC_read, RTC_write, RTC_open, RTC_close};
 
 int32_t open( const uint8_t* filename);
 int32_t close(int32_t fd);
-
+int32_t write(int32_t fd, const void* buf, int32_t nbytes);
+int32_t read(int32_t fd, void* buf, int32_t nbytes);
 #endif
 

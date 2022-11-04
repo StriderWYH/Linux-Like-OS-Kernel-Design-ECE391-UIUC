@@ -135,3 +135,36 @@ int32_t open( const uint8_t* filename){
 
 }
 
+int32_t write(int32_t fd, const void* buf, int32_t nbytes)
+{
+    int esp;
+    asm("movl %%esp, %0" : "=r"(esp) :);
+    pcb_t* pcb = (pcb_t*)(esp & 0x7FE000);
+    if ((fd<0) || (fd>7) || (buf==NULL) || (nbytes<0))
+    {
+        return -1;
+    }
+    if (pcb->file_array[fd].flags == 0)
+    {
+        return -1;
+    }
+    return pcb->file_array[fd].optable_ptr->write(fd,buf,nbytes);
+}
+
+
+
+int32_t read(int32_t fd, void* buf, int32_t nbytes)
+{
+    int esp;
+    asm("movl %%esp, %0" : "=r"(esp) :);
+    pcb_t* pcb = (pcb_t*)(esp & 0x7FE000);
+    if ((fd<0) || (fd>7) || (buf==NULL) || (nbytes<0))
+    {
+        return -1;
+    }
+    if (pcb->file_array[fd].flags == 0)
+    {
+        return -1;
+    }
+    return pcb->file_array[fd].optable_ptr->read(fd,buf,nbytes);
+}
