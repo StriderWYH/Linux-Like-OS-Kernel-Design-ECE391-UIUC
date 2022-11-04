@@ -56,7 +56,7 @@ fop_table stdin_op = { terminal_read, terminal_write, terminal_open, terminal_cl
 fop_table stdout_op = { terminal_read,terminal_write, terminal_open, terminal_close};
 fop_table regular_op = { file_read, file_write, file_open, file_close};
 fop_table dir_op = {dir_read, dir_write, dir_open, dir_close};
-fop_table rtc_op = { RTC_read, RTC_write, RTC_open, RTC_write};
+fop_table rtc_op = { RTC_read, RTC_write, RTC_open, RTC_close};
 
 
 /* function for file operation */

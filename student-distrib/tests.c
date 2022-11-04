@@ -241,7 +241,7 @@ void rtc_test()
 	int32_t nbyte;
 	clean_screen();
 	buffer_1[0] = 2;
-	RTC_open(nbyte);
+	RTC_open(NULL);
 	while(1){
 		
 		RTC_write(fd,buffer_1,nbyte);
@@ -255,7 +255,7 @@ void rtc_test()
 		}
 		i++;
 	}
-	RTC_close(nbyte);
+	RTC_close(fd);
 	//rtc_interrupt_handler();
 
 	//return PASS;
@@ -270,7 +270,7 @@ void rtc_test()
  * output: none
  */
 void terminal_test(){
-	terminal_open(0);
+	terminal_open(NULL);
 	while(1){
 		int write;
 		while(!keyboard_flag); 

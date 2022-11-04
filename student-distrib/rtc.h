@@ -17,8 +17,8 @@ extern void rtc_interrupt_handler();
 extern int get_interrupt_rate(int frequency);
 extern void set_frequency(int rate);
 
-int RTC_open(int nbytes);
-int RTC_close(int nbytes);
+int RTC_open(const uint8_t* filename);
+int RTC_close(int32_t fd);
 int RTC_read(int32_t fd, void* buf, int32_t nbytes);
 int RTC_write(int32_t fd, void* buf, int32_t nbytes);
 #endif

@@ -246,7 +246,7 @@ void print_stuff(int value,int indexP){
  * output: 0 if success
  */
 //////////////////////////////////////////////////////
-int terminal_open(int nbytes){
+int terminal_open(const uint8_t* filename){
     clean_screen();                     // clean the screen first
     update_cursor(0);                   // update the cursor
     return 0;
@@ -256,7 +256,7 @@ int terminal_open(int nbytes){
  * input: nbytes
  * output: 0 if success
  */
-int terminal_close(int nbytes){
+int terminal_close(int32_t fd){
     disable_cursor();
     return 0;
 }

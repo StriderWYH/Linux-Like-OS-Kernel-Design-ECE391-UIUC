@@ -93,7 +93,7 @@ int get_interrupt_rate(int frequency)
  * input: none
  * output: 0 for success ,can't fail
  */
-int RTC_open(int nbytes)
+int RTC_open(const uint8_t* filename)
 {
     int frequency = 1024;
     int rate = get_interrupt_rate(frequency);
@@ -109,7 +109,7 @@ int RTC_open(int nbytes)
  * input: none
  * output: 0 for success ,can't fail
  */
-int RTC_close(int nbytes)
+int RTC_close(int32_t fd)
 {
     return 0;
 }
