@@ -11,6 +11,7 @@
 #define FNAME_SIZE 32
 #define BUFSIZE 4
 #define FOUR_BYTE 4
+#define PCB_MSK 0x007FE000
 
 #define MAGIC_ONE       0x7F            // the four magic numbers
 #define MAGIC_TWO       0x45
@@ -51,15 +52,16 @@ struct fop_table
     int32_t (*close)(int32_t fd);
 };
 
-fop_table stdin_op = { terminal_read, terminal_write, terminal_open, terminal_close};
-fop_table stdout_op = { terminal_read,terminal_write, terminal_open, terminal_close};
+fop_table stdin_op = { terminal_read, terminal_write, bad_call_open, bad_call_close};
+fop_table stdout_op = { terminal_read,terminal_write, bad_call_open, bad_call_close};
 fop_table regular_op = { file_read, file_write, file_open, file_close};
 fop_table dir_op = {dir_read, dir_write, dir_open, dir_close};
 fop_table rtc_op = { RTC_read, RTC_write, RTC_open, RTC_close};
 
 
 /* function for file operation */
-
+int32_t bad_call_open(const uint8_t* filename);
+int32_t bad_call_close(int32_t fd);
 int32_t open( const uint8_t* filename);
 int32_t close(int32_t fd);
 int32_t write(int32_t fd, const void* buf, int32_t nbytes);
