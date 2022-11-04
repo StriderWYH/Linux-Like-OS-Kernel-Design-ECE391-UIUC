@@ -237,13 +237,15 @@ void rtc_test()
 	int i = 0;
 	int index_ds = 0;
 	int buffer_1[1];
+	int32_t fd = 0;
+	int32_t nbyte;
 	clean_screen();
 	buffer_1[0] = 2;
-	RTC_open();
+	RTC_open(nbyte);
 	while(1){
 		
-		RTC_write(buffer_1);
-		RTC_read();
+		RTC_write(fd,buffer_1,nbyte);
+		RTC_read(fd,buffer_1,nbyte);
 		index_ds++;
 		putc(122);
 		//print_stuff(122,index_ds);
@@ -253,7 +255,7 @@ void rtc_test()
 		}
 		i++;
 	}
-	RTC_close();
+	RTC_close(nbyte);
 	//rtc_interrupt_handler();
 
 	//return PASS;

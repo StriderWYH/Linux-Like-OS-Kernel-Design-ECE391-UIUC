@@ -2,6 +2,10 @@
 #define _SYSTEMCALL_H
 
 #include "types.h"
+#include "keyboard.h"
+#include "file_sys.h"
+#include "lib.h"
+#include "rtc.h"
 
 #define ARG_NUM 100
 #define FNAME_SIZE 32
@@ -40,7 +44,25 @@ struct fd_t
     uint32_t flags;
 };
 
+struct fop_table
+{
+    int32_t (*read)(int32_t fd, void* buf, int32_t nbytes);
+    int32_t (*write)(int32_t fd, const void*buf, int32_t nbytes);
+    int32_t (*open)(const uint8_t* filename);
+    int32_t (*close)(int32_t fd);
+};
 
+fop_table stdin_op = { terminal_read, terminal_write, terminal_open, terminal_close};
+fop_table stdout_op = { terminal_read,terminal_write, terminal_open, terminal_close};
+fop_table regular_op = { file_read, file_write, file_open, file_close};
+fop_table dir_op = {dir_read, dir_write, dir_open, dir_close};
+fop_table rtc_op = { RTC_read, RTC_write, RTC_open, RTC_write};
+
+
+/* function for file operation */
+
+int32_t open( const uint8_t* filename);
+int32_t close(int32_t fd);
 
 #endif
 
