@@ -93,7 +93,7 @@ int get_interrupt_rate(int frequency)
  * input: none
  * output: 0 for success ,can't fail
  */
-int RTC_open()
+int RTC_open(int nbytes)
 {
     int frequency = 1024;
     int rate = get_interrupt_rate(frequency);
@@ -109,7 +109,7 @@ int RTC_open()
  * input: none
  * output: 0 for success ,can't fail
  */
-int RTC_close()
+int RTC_close(int nbytes)
 {
     return 0;
 }
@@ -119,7 +119,7 @@ int RTC_close()
  * input: none
  * output: 0 for success ,can't fail
  */
-int RTC_read()
+int RTC_read(int32_t fd, void* buf, int32_t nbytes)
 {
     while(RTC_interrupt == 0){}     //wait for the interrupt
     RTC_interrupt = 0;
@@ -131,7 +131,7 @@ int RTC_read()
  * input: void* buffer (contains the frequency)
  * output: 0 for success, 1 for fail, if the frequency is not the power of 2, fail
  */
-int RTC_write(void* buffer)
+int RTC_write(int32_t fd, void* buf, int32_t nbytes)
 {
     // int frequency;
     // int rate;
@@ -145,7 +145,7 @@ int RTC_write(void* buffer)
     // return 0;           //return 0 for success
 
     /*rtc virtualization*/
-    virtual_frequency = *((int*)buffer);
+    virtual_frequency = *((int*)buf);
     time_counter = 0;
     return 0;
 }
