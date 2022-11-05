@@ -682,13 +682,13 @@ void launch_tests(){
 	//TEST_OUTPUT("kernel_paging_out_test", kernel_paging_out_test());
 
 	//PagingFault_test();
-	terminal_test();
-	//systemcall_terminal_test();
+	//terminal_test();
+	systemcall_terminal_test();
 	//file_read_testsf();
 	//file_read_testexe();
 	//file_read_testlf();
 	//execute_test();
-	r_file_offset();
+	//r_file_offset();
 	//r_w_test_smfile();
 	//oc_test();
 	//print_out_all_files();
