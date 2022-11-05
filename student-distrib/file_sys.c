@@ -1,11 +1,13 @@
 #include "file_sys.h"
+#include "systemcall.h"
+#include "page.h"
 
 
 /*
  *  read_dentry_by_name
  *  DESCRIPTION: fetch a dentry with the given file name , can fetch the name of all the three file types(regular file and directory file and RTC file)
  *  INPUTS:             fname  - the name of the file, which is assumed to be '\0' terminated 
- *                      denrty - put the message into this temporary dentry as return  
+ *                      denrty - put the message into this temporary dentry as return, can not ensure the filename is null terminated  
  *  OUTPUTS: NONE
  *  SIDEEFFECT: NONE
  *  RETURN VALUE:       0  - find the dentry with the file name fname successfully
@@ -33,7 +35,7 @@ int32_t read_dentry_by_name(const uint8_t*fname, dentry_t* dentry){
         // if the fname in this dentry is 32 B, compare the fname_true with the fname
         if (nul_flag){
             if(!strncmp((int8_t*)fname,(const int8_t*)fname_true,FILENAME_LEN)){
-                strcpy(dentry->filename,(int8_t*)fname_true);
+                strncpy(dentry->filename,(int8_t*)fname_true,FILENAME_LEN);
                 dentry->filetype = boot_block->direntries[i].filetype;
                 dentry->inode_num = boot_block->direntries[i].inode_num;
                 return 0;
@@ -59,7 +61,7 @@ int32_t read_dentry_by_name(const uint8_t*fname, dentry_t* dentry){
  *  read_dentry_by_index
  *  DESCRIPTION: read the dentry with index index(ar1) to the dentry(arg 2)
  *  INPUTS:             index - the index of the target dentry
- *                      dentry - read the target dentry into, we can not make sure that the fname in dentry is nul terminated
+ *                      dentry - read the target dentry info, we can not make sure that the fname in dentry is nul terminated
  *  OUTPUTS: NONE
  *  SIDEEFFECT: NONE
  *  RETURN VALUE:  -1 - failure to read dentry
@@ -78,7 +80,7 @@ int32_t read_denty_by_index(uint32_t index,dentry_t* dentry){
             nul_flag = 1;  // set nul_flag to 1, indicating that the fname in the dentry is too long to have null terminated
     }
     if (nul_flag == 1){
-        strcpy(dentry->filename,(const int8_t*)fname_true);
+        strncpy(dentry->filename,(const int8_t*)fname_true,FILENAME_LEN); // in this case the fname in the dentry couldn't be null terminated
         dentry->filetype = boot_block->direntries[index].filetype;
         dentry->inode_num = boot_block->direntries[index].inode_num;
         return 0;
@@ -164,11 +166,11 @@ void file_sys_init(uint32_t file_sys_start){
  *                      -1 - fail openning 
  */
 int32_t file_open(const uint8_t* filename){
-    int32_t result;
-    result = read_dentry_by_name(filename,&glob_dentry);
+    //int32_t result;
+    //result = read_dentry_by_name(filename,&glob_dentry);
     // if read file fails or the current file type is not regular file, return -1
-    if (result == -1) return -1;
-    if (glob_dentry.filetype != 2) return -1;
+    //if (result == -1) return -1;
+    //if (glob_dentry.filetype != 2) return -1;
     // otherwise return 0 as success
     return 0;
 }
@@ -213,13 +215,28 @@ int32_t file_write(int32_t fd, const void* buf, int32_t nbytes){
  *                 result - number of the bytes read successfully
  */                                         
 int32_t file_read(int32_t fd,void* buf, int32_t nbytes){
-    int32_t result,length;
-    
-    // check if the type of the file is regular file, only which could be read
-    if(glob_dentry.filetype != 2) return -1;
-    length = ((inode_t*)(boot_block + 1 + glob_dentry.inode_num))->length_of_file;
+    int32_t result,offset,inode_n;
+    int esp;
+    // int32_t length
+    // fetch the address of the current PCB
+    asm("movl %%esp, %0" : "=r"(esp) :);
+    pcb_t *pcb = (pcb_t *)( esp & PCB_MSK);
 
-    result = read_data(glob_dentry.inode_num,0,buf,length);
+    offset = pcb->file_array[fd].file_position;
+    inode_n = pcb->file_array[fd].inode;
+
+    //if not in use, read fails
+    if(pcb->file_array[fd].flags == 0) return -1;
+
+    // check if the type of the file is regular file, only which could be read
+    //if(glob_dentry.filetype != 2) return -1;
+    //length = ((inode_t*)(boot_block + 1 + glob_dentry.inode_num))->length_of_file;
+
+    result = read_data(inode_n,offset,buf,nbytes);
+    // if read fails, return -1
+    if(result == -1) return -1;
+    // update the offset
+    pcb->file_array[fd].file_position += result;
 
     return result;
 
@@ -234,11 +251,12 @@ int32_t file_read(int32_t fd,void* buf, int32_t nbytes){
  *                      -1 - fail openning 
  */
 int32_t dir_open(const uint8_t* filename){
-    int32_t result;
-    result = read_dentry_by_name(filename,&glob_dentry_for_dirread);
+    //int32_t result;
+    //result = read_dentry_by_name(filename,&glob_dentry_for_dirread);
     // if read fname fails  return -1
-    if (result == -1) return -1;
+    //if (result == -1) return -1;
     // otherwise return 0 as success
+    dir_index =0;
     return 0;
  }
 /*
@@ -255,26 +273,30 @@ int32_t dir_close(int32_t fd){
 }
 /*
  *  dir_read
- *  DESCRIPTION: read a directory
+ *  DESCRIPTION: read the successive directory, if reached the last one, keeps returning 0
  *  INPUTS:            fd  - file descriptor
  *                     buf - read the fname and write them into the buf
  *                     offset - start from which file of the directory
  *                     nbytes - the number of bytes to be read 
  *  OUTPUTS: NONE
  *  SIDEEFFECT: NONE
- *  RETURN VALUE:       0  - read file name successfully
- *                      -1 - fail reading
+ *  RETURN VALUE:       0  - reach the last directory
+ *                      length - the number of bytes read
  *    
  */             
 int32_t dir_read(int32_t fd, void* buf, int32_t nbytes){
-    int32_t result;
+    int32_t result,length;
     result = read_denty_by_index(dir_index,&glob_dentry_for_dirread);
-    if(result == -1){
-        return -1;
-    }
-    strcpy(buf,glob_dentry_for_dirread.filename);
+    
+    if(result == -1)  return 0;
+    
+    length = strlen(glob_dentry_for_dirread.filename);
+    if(length > FILENAME_LEN) length = FILENAME_LEN;
+
+
+    strncpy(buf,glob_dentry_for_dirread.filename,length);
     dir_index++;
-    return result;
+    return length;
 }
 /*
  *  dir_write
