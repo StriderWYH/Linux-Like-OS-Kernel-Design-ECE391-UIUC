@@ -77,13 +77,13 @@ int32_t execute(const uint8_t* command) {
 
     // check if the four magic numbers are correct
     if(!read_data(dentry.inode_num, 0, buf, FOUR_BYTE)) return -1;
-    if(strncmp((const int8_t*)buf, "ELF", BUFSIZE)) return -1;
-    /*
+    //if(strncmp((const int8_t*)buf, "ELF", BUFSIZE)) return -1;
+    
     for (i = 0; i < FOUR_BYTE; i++) {
         if (buf[i] != exe_check[i])
             return -1;
     }
-    */
+    
     // get the entry point of the executable
     read_data(dentry.inode_num, 24, buf, FOUR_BYTE);
     code_eip = *((uint32_t*)buf);
@@ -147,22 +147,24 @@ int32_t execute(const uint8_t* command) {
     // 6. context switch
     tss.ss0 = KERNEL_DS;
     tss.esp0 = KERNEL_MEM_END - (index) * SIZE_OF_8KB - WORD_SIZE;
+
     asm volatile(
-        "xorl %%eax, %%eax;"
-        "movw %w0, %%ax;"
+        "mov  $0x2B, %%ax;"
         "movw %%ax, %%ds;"
-        "pushl %%eax;"          // push the user data segment information
-        "pushl %1;"             // push user program esp
+        "pushl $0x2B;"          // push the user data segment information
+        "pushl %0;"             // push user program esp
         "pushfl;"               // push eflags
         "popl %%eax;"           // manually enable the interrupt
         "orl $0x200, %%eax;"
         "pushl %%eax;"
-        "pushl %2;"             // push code segment information
-        "pushl %3;"             // push user program eip
+        "pushl $0x23;"             // push code segment information
+        "pushl %1;"             // push user program eip
         "iret;"
-        "return_to_execute:;"
+        "BACK_TO_RET:;"       // where the execute finally come back
+        "leave;"
+        "ret;"
         : /* no outputs */
-        : "g" (USER_DS), "g" (SIZE_OF_128MB + SIZE_OF_4MB - WORD_SIZE), "g" (USER_CS), "g" (code_eip)
+        : "g" (SIZE_OF_128MB + SIZE_OF_4MB - WORD_SIZE), "g" (code_eip)
         : "eax"
     );
     return 0;
