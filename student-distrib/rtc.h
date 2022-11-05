@@ -20,5 +20,5 @@ extern void set_frequency(int rate);
 int RTC_open(const uint8_t* filename);
 int RTC_close(int32_t fd);
 int RTC_read(int32_t fd, void* buf, int32_t nbytes);
-int RTC_write(int32_t fd, void* buf, int32_t nbytes);
+int RTC_write(int32_t fd, const void* buf, int32_t nbytes);
 #endif

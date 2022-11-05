@@ -37,6 +37,6 @@ void print_stuff(int value, int indexP);
 int terminal_open(const uint8_t* filename);
 int terminal_close(int32_t fd);
 int terminal_read(int32_t fd, void* buf, int32_t nbytes);
-int terminal_write(int32_t fd, void* buf, int32_t nbytes);
+int terminal_write(int32_t fd, const void* buf, int32_t nbytes);
 #endif
 

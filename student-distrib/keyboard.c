@@ -317,7 +317,7 @@ int terminal_read(int32_t fd, void* buf, int32_t nbytes){
  * input: nbytes : bytes to be written
  * output: bytes that are successfully written
  */
-int terminal_write(int32_t fd, void* buf, int32_t nbytes){
+int terminal_write(int32_t fd, const void* buf, int32_t nbytes){
     int byte_write;
     int i = 0;
     byte_write = 0;

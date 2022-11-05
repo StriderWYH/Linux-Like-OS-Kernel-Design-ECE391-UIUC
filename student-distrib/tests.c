@@ -445,6 +445,11 @@ void print_out_all_files(){
 }
 /* Checkpoint 3 tests */
 
+void execute_test(){
+	printf("execute test: shell doc");
+	execute((uint8_t *)"shell");
+}
+
 
 void oc_test(){
 	int result;
@@ -626,6 +631,7 @@ void launch_tests(){
 	//file_read_testsf();
 	//file_read_testexe();
 	//file_read_testlf();
+	execute_test();
 	//print_out_all_files();
 	// launch your tests here
 }
