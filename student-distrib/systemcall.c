@@ -78,7 +78,7 @@ int32_t execute(const uint8_t* command) {
     int index;
     PDE entry;
     //***************************************************************
-
+    cli();
     if(!command){  // check whether it is null
         return -1;
     }
@@ -107,10 +107,10 @@ int32_t execute(const uint8_t* command) {
 
 
     // 2. executable check
-    if(!read_dentry_by_name((uint8_t*)fname, &dentry)) return -1;
+    if(read_dentry_by_name((uint8_t*)fname, &dentry) == -1) return -1;
 
     // check if the four magic numbers are correct
-    if(!read_data(dentry.inode_num, 0, buf, FOUR_BYTE)) return -1;
+    if(read_data(dentry.inode_num, 0, buf, FOUR_BYTE) == -1) return -1;
     //if(strncmp((const int8_t*)buf, "ELF", BUFSIZE)) return -1;
     
     for (i = 0; i < FOUR_BYTE; i++) {
@@ -132,7 +132,7 @@ int32_t execute(const uint8_t* command) {
             break;
         }
     }
-    putc("dsdsdsd");
+
     entry.MBPDE.value = 0;
     entry.MBPDE.present = 1;
     entry.MBPDE.R_W = 1;
@@ -185,7 +185,7 @@ int32_t execute(const uint8_t* command) {
     // 6. context switch
     tss.ss0 = KERNEL_DS;
     tss.esp0 = KERNEL_MEM_END - (index) * SIZE_OF_8KB - WORD_SIZE;
-    
+    sti();
     asm volatile(
     	"cli;"
     	// User DS

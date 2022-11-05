@@ -683,7 +683,7 @@ void launch_tests(){
 
 	//PagingFault_test();
 	//terminal_test();
-	systemcall_terminal_test();
+	//systemcall_terminal_test();
 	//file_read_testsf();
 	//file_read_testexe();
 	//file_read_testlf();
