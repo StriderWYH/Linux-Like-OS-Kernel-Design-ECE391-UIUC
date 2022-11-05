@@ -6,9 +6,9 @@ systemcall_wrapper:
     pushl %edi
     pushl %esp
 
-    cmpl $0,%eax
+    cmpl $1,%eax
     jl invalid
-    cmpl $5,%eax
+    cmpl $6,%eax
     jg invalid
 
     pushl %edx

@@ -273,11 +273,13 @@ void rtc_test()
  */
 void terminal_test(){
 	//terminal_open((uint8_t*)"stdin");
+	char buf[100];
 	while(1){
 		int write;
+		
 		while(!keyboard_flag); 
-        write = terminal_read(0,keyboard_buffer,global_keyboard_index);
-        terminal_write(0,terminal_buffer,write);
+        write = terminal_read(0,buf,0);
+        terminal_write(0,buf,write);
 		//terminal_read();
 	}    
 	//sterminal_close(0);
@@ -728,7 +730,11 @@ void launch_tests(){
 	//file_read_testsf();
 	//file_read_testexe();
 	//file_read_testlf();
+
+	
 	execute_test();
+	
+	
 	//r_file_offset();
 	//r_w_test_smfile();
 	//oc_test();

@@ -269,18 +269,20 @@ int terminal_read(int32_t fd, void* buf, int32_t nbytes){
     int byte_read;
     int i = 0;
     char * kb_buf =  (char*)buf;
+    //printf("%d",global_keyboard_index);
     byte_read = 0;
-    if(strlen(kb_buf) >= 128) return -1;
-    if(nbytes >= 128) nbytes = 127;
+    if(strlen(keyboard_buffer) >= 128) return -1;
+    if(global_keyboard_index >= 128) global_keyboard_index = 127;
 
     while(!keyboard_flag);              // wait untill the keyboard has entered a "enter"
     keyboard_flag = 0;                  // reset the flag to be used next time
     /////////////////// Maybe space for enter actions
     //putc((int)('\n')); // change the line
 
-    if((nbytes) != 80){  // if the index is 80(last bit of the characr + 1), that should change one line
+    if((global_keyboard_index) != 80){  // if the index is 80(last bit of the characr + 1), that should change one line
         change_line(1);
-        terminal_buffer[nbytes] = '\n';
+        kb_buf[global_keyboard_index] = '\n';
+        terminal_buffer[global_keyboard_index] = '\n';
         byte_read++;
     }
    
@@ -290,7 +292,7 @@ int terminal_read(int32_t fd, void* buf, int32_t nbytes){
 
     /////////////////// Maybe space for enter actions
 
-    for(i = 0; i < nbytes; i++){
+    for(i = 0; i < global_keyboard_index; i++){
         /*
         if(keyboard_buffer[i] == '\n'){ // when the enter is detected, end reading
             keyboard_buffer[i] = '\0';
@@ -298,15 +300,17 @@ int terminal_read(int32_t fd, void* buf, int32_t nbytes){
         }
         */
         if(i >= 128){    // check for overflow
+            terminal_buffer[i] = '\0';
             kb_buf[i] = '\0';
             break;
         }
-        terminal_buffer[i] = kb_buf[i];
+        kb_buf[i] = keyboard_buffer[i];
+        terminal_buffer[i] = keyboard_buffer[i];
         byte_read += 1;
-        kb_buf[i] = '\0'; // clear the buffer
+        keyboard_buffer[i] = '\0'; // clear the buffer
     }
     //terminal_buffer[global_keyboard_index] = '\n';
-    
+    //putc(kb_buf[2]);
     //printf("%d",&nbytes);
     global_keyboard_index = 0; ////////////////////////////////////////////////pay much attention here, it will initialize the index
     nbytes = 0;
@@ -323,7 +327,8 @@ int terminal_write(int32_t fd, const void* buf, int32_t nbytes){
     byte_write = 0;
     char * termi_buf = (char *)buf;
     //if (nbytes > 80)  scrolling(1);
-
+    //puts("this is output:");
+    //putc(termi_buf[2]);
     for(i = 0; i < nbytes; i++){
         // if((i == 80) & (terminal_buffer[i] != '\n')){    // if it meet the end of the line or user pressed an "enter" 80 is the end character of the line
         //     change_line(1);
