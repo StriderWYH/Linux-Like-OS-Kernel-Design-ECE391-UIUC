@@ -5,6 +5,7 @@
 #include "i8259.h"
 #include "keyboard.h"
 #include "file_sys.h"
+#include "systemcall.h"
 #define PASS 1
 #define FAIL 0
 
@@ -442,6 +443,11 @@ void print_out_all_files(){
 
 }
 /* Checkpoint 3 tests */
+
+void execute_test(){
+	printf("execute test: shell doc");
+	execute((uint8_t *)"shell");
+}
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -452,7 +458,7 @@ void launch_tests(){
 
 	//div_test();
 	//syscall_test();
-	rtc_test();
+	//rtc_test();
 
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("rtc_idt_entry test",idt_special_test_forRtc());
@@ -471,6 +477,7 @@ void launch_tests(){
 	//file_read_testsf();
 	//file_read_testexe();
 	//file_read_testlf();
+	execute_test();
 	//print_out_all_files();
 	// launch your tests here
 }
