@@ -444,6 +444,66 @@ void print_out_all_files(){
 
 }
 /* Checkpoint 3 tests */
+void systemcall_rtc_test() 
+{
+	TEST_HEADER;
+	int i = 0;
+	int index_ds = 0;
+	int buffer_1[1];
+	int32_t fd = open((uint8_t*)"rtc");
+	int32_t result = 0;
+	int32_t nbyte = 0;
+	clean_screen();
+
+	printf("fd is : %d \n",fd);
+	int esp;
+    // fetch the address of the current PCB
+    asm("movl %%esp, %0" : "=r"(esp) :);
+    pcb_t *pcb = (pcb_t *)( esp & PCB_MSK);
+	uint32_t flag = pcb->file_array[fd].flags;
+	printf("flag is : %d\n",flag);
+
+	buffer_1[0] = 2;
+	if (fd==-1) {return;}
+	RTC_open((uint8_t*)"rtc");
+	while(1){
+		
+		write(fd,buffer_1,nbyte);
+		read(fd,buffer_1,nbyte);
+		index_ds++;
+		putc(122);
+		//print_stuff(122,index_ds);
+		if((buffer_1[0] < 1024) && (i % 20 == 0))
+		{
+			buffer_1[0] = (buffer_1[0]) * 2;
+		}
+		i++;
+	}
+	result = close(fd);
+	//printf("result is : %d\n",result);
+	//rtc_interrupt_handler();
+
+	//return PASS;
+}
+
+void systemcall_terminal_test()
+{
+	int32_t fd = open((uint8_t*)"stdin");
+	int32_t result = 0;
+	terminal_open(NULL);
+	while(1){
+		int systemcall_terminal_flag;
+		while(!keyboard_flag); 
+        systemcall_terminal_flag = read(fd,keyboard_buffer,global_keyboard_index);
+        write(fd,terminal_buffer,systemcall_terminal_flag);
+		//terminal_read();
+	}    
+	terminal_close(0);
+	result = close(fd);
+}
+
+
+
 
 void execute_test(){
 	printf("execute test: shell doc");
@@ -608,7 +668,7 @@ void launch_tests(){
 	//div_test();
 	//syscall_test();
 	//rtc_test();
-
+	//systemcall_rtc_test();
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("rtc_idt_entry test",idt_special_test_forRtc());
 	//TEST_OUTPUT("Keyboard_idt_entry test",idt_special_test_forKey());
@@ -623,11 +683,12 @@ void launch_tests(){
 
 	//PagingFault_test();
 	//terminal_test();
+	systemcall_terminal_test();
 	//file_read_testsf();
 	//file_read_testexe();
 	//file_read_testlf();
 	//execute_test();
-	r_file_offset();
+	//r_file_offset();
 	//r_w_test_smfile();
 	//oc_test();
 	//print_out_all_files();
