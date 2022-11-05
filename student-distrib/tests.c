@@ -450,7 +450,8 @@ void execute_test(){
 	execute((uint8_t *)"shell");
 }
 
-
+// test all the return value of open and close including:
+// stdin, stdout, frame0.txt, verylargetextwithverylongname.tx and a non-existing file
 void oc_test(){
 	int result;
 	int esp;
@@ -565,7 +566,8 @@ void r_w_test_smfile(){
 }
 // read a file, include offset
 void r_file_offset(){
-	int32_t result,i;
+	int esp;
+	int32_t result,i, offset_cur;
 	i = 0;
 	clean_screen();
 	result = open((uint8_t*)"frame0.txt");
@@ -574,30 +576,69 @@ void r_file_offset(){
 		return;
 	}
 
-	uint8_t buf[10];
-	read(result,buf,10);
-	while(i < 10){
+	uint8_t buf[50];
+	read(result,buf,50);
+	while(i < 50){
 		if(buf[i] != '\0'){
 		//print_stuff(buf[i],i);
 		putc(buf[i]);
 		}
 		i++;
 	}
+	asm("movl %%esp, %0" : "=r"(esp) :);
+    pcb_t *pcb = (pcb_t *)( esp & PCB_MSK);
 
-	uint8_t buf2[10];
-	read(result,buf2,10);
-	while(i < 10){
+	offset_cur = pcb->file_array[result].file_position;
+
+	uint8_t buf2[50];
+	read(result,buf2,50);
+	while(i < 50){
 		if(buf2[i] != '\0'){
 		//print_stuff(buf[i],i);
 		putc(buf2[i]);
 		}
 		i++;
 	}
+	close(result);
 	printf("\n");
+	printf("The correct offset after the first read should be 50 \n");
+	printf("Now the  offset after the first read is : %d \n", offset_cur);
 	printf("all success");
 	return;
 }
 
+void read_dir(){
+	uint32_t i,fd_cur,result;
+	uint8_t filename_buf[33];  // used for print ou the filename with fix format
+	/* initialize the filname_buf */
+	filename_buf[32] = '\0';
+	/*for(i=0;i<32;i++){
+			filename_buf[i] = ' ';
+	}*/
+	clean_screen();
+	fd_cur = open((uint8_t*)"."); // try open the dir
+	if(fd_cur == -1){
+		printf("fail opening .\n");
+		return;
+	}
+
+	while((result =read(fd_cur,filename_buf,32)) != 0){
+		printf("file_name: ");
+		puts((int8_t*)filename_buf);
+		printf("\n");
+		for(i = 0; i < 33; i++){
+			filename_buf[i] = '\0';
+		}
+	}
+
+	printf("reach the end of the dir\n");
+
+	result = write(fd_cur,filename_buf,20);
+	if(result != -1){
+		printf(" We should not allow write into a dir file\n");
+	}
+	return;
+}
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -628,9 +669,10 @@ void launch_tests(){
 	//file_read_testexe();
 	//file_read_testlf();
 	//execute_test();
-	r_file_offset();
+	//r_file_offset();
 	//r_w_test_smfile();
 	//oc_test();
+	read_dir();
 	//print_out_all_files();
 	// launch your tests here
 }

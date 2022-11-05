@@ -31,4 +31,5 @@ void rtc_test();
 void r_file_offset();
 void r_w_test_smfile();
 void oc_test();
+void read_dir();
 #endif /* TESTS_H */
