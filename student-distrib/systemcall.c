@@ -110,7 +110,7 @@ int32_t execute(const uint8_t* command) {
 
     // check if the four magic numbers are correct
     if(!read_data(dentry.inode_num, 0, buf, FOUR_BYTE)) return -1;
-    //if(strncmp((const int8_t*)buf, "ELF", BUFSIZE)) return -1;
+    //if(strncmp((const int8_t*)buf, "ELF", BUFSIZE)) return -1;
     
     for (i = 0; i < FOUR_BYTE; i++) {
         if (buf[i] != exe_check[i])
@@ -314,11 +314,11 @@ int32_t open( const uint8_t* filename){
  *  close
  *  DESCRIPTION: do the close operation for any kind of the file except for stdin and stdout, 
  *               and makes it available for return from later call to open
- *  INPUTS:             fname  - the name of the file, which is assumed to be '\0' terminated                  
+ *  INPUTS:             fd  - the fd index of the file to close                  
  *  OUTPUTS: NONE
  *  SIDEEFFECT: NONE
- *  RETURN VALUE:       fd - (0-7)the fd index of the opened file, means open the file with the file name fname successfully
- *                      -1 - the fname is too long or null or no such file called fname or open fails
+ *  RETURN VALUE:       0 - close successfully
+ *                      -1 - the fd is out of rage or equal to 0 or 1 or close a not using file
  */
 int32_t close(int32_t fd){
     int result;
@@ -336,6 +336,7 @@ int32_t close(int32_t fd){
         pcb->file_array[fd].flags = 0;
         pcb->file_array[fd].optable_ptr = NULL;
         pcb->file_array[fd].file_position = 0;
+        return 0;
     }
 
     return -1;
