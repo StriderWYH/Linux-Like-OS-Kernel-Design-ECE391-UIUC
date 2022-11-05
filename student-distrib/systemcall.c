@@ -93,7 +93,10 @@ int32_t execute(const uint8_t* command) {
         if (index == MAX_PROC){
             return -1;
         }
-        if (!process_table[index]) break;
+        if (!process_table[index]) {
+            process_table[index] = 1;
+            break;
+        }
     }
     entry.MBPDE.value = 0;
     entry.MBPDE.present = 1;
@@ -167,6 +170,17 @@ int32_t execute(const uint8_t* command) {
     );
     return 0;
 }
+
+
+int32_t halt(uint8_t status){
+
+}
+
+
+
+
+
+
 
 /*
  *  open

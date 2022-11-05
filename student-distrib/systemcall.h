@@ -20,7 +20,7 @@
 #define MAX_FILE_DESCRIPTOR 8
 #define NUM_
 int32_t execute(const uint8_t* command);
-
+int32_t halt(uint8_t status);
 
 struct pcb_t
 {
