@@ -5,6 +5,7 @@
 #include "i8259.h"
 #include "keyboard.h"
 #include "file_sys.h"
+#include "systemcall.h"
 #define PASS 1
 #define FAIL 0
 
@@ -442,6 +443,41 @@ void print_out_all_files(){
 
 }
 /* Checkpoint 3 tests */
+void systemcall_rtc_test() 
+{
+	TEST_HEADER;
+	int i = 0;
+	int index_ds = 0;
+	int buffer_1[1];
+	int32_t fd = open("rtc");
+	int32_t result = 0;
+	int32_t nbyte = 0;
+	clean_screen();
+	buffer_1[0] = 2;
+	if (fd==-1) {return;}
+	RTC_open("rtc");
+	while(1){
+		
+		write(fd,buffer_1,nbyte);
+		read(fd,buffer_1,nbyte);
+		index_ds++;
+		putc(122);
+		//print_stuff(122,index_ds);
+		if((buffer_1[0] < 1024) && (i % 20 == 0))
+		{
+			buffer_1[0] = (buffer_1[0]) * 2;
+		}
+		i++;
+	}
+	result = close(fd);
+	//rtc_interrupt_handler();
+
+	//return PASS;
+}
+
+
+
+
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -453,7 +489,7 @@ void launch_tests(){
 	//div_test();
 	//syscall_test();
 	rtc_test();
-
+	//systemcall_rtc_test();
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("rtc_idt_entry test",idt_special_test_forRtc());
 	//TEST_OUTPUT("Keyboard_idt_entry test",idt_special_test_forKey());

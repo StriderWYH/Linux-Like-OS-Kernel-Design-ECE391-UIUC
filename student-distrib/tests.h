@@ -27,4 +27,8 @@ void file_read_testlf();
 void print_out_all_files();
 //int rtc_test();
 void rtc_test();
+
+//checkpoint 3
+void systemcall_rtc_test();
 #endif /* TESTS_H */
+
