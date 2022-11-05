@@ -23,6 +23,22 @@
 int32_t execute(const uint8_t* command);
 int32_t halt(uint8_t status);
 
+struct fop_table
+{
+    int32_t (*read)(int32_t fd, void* buf, int32_t nbytes);
+    int32_t (*write)(int32_t fd, const void*buf, int32_t nbytes);
+    int32_t (*open)(const uint8_t* filename);
+    int32_t (*close)(int32_t fd);
+};
+
+struct fd_t
+{
+    fop_table* optable_ptr;
+    int32_t inode;
+    int32_t file_position;
+    uint32_t flags;
+};
+
 struct pcb_t
 {
     uint8_t args[ARG_NUM];
@@ -36,29 +52,6 @@ struct pcb_t
 
 };
 
-struct fd_t
-{
-    fop_table* optable_ptr;
-    int32_t inode;
-    int32_t file_position;
-    uint32_t flags;
-};
-
-struct fop_table
-{
-    int32_t (*read)(int32_t fd, void* buf, int32_t nbytes);
-    int32_t (*write)(int32_t fd, const void*buf, int32_t nbytes);
-    int32_t (*open)(const uint8_t* filename);
-    int32_t (*close)(int32_t fd);
-};
-
-fop_table stdin_op = { terminal_read, terminal_write, bad_call_open, bad_call_close};
-fop_table stdout_op = { terminal_read,terminal_write, bad_call_open, bad_call_close};
-fop_table regular_op = { file_read, file_write, file_open, file_close};
-fop_table dir_op = {dir_read, dir_write, dir_open, dir_close};
-fop_table rtc_op = { RTC_read, RTC_write, RTC_open, RTC_close};
-
-
 /* function for file operation */
 int32_t bad_call_open(const uint8_t* filename);
 int32_t bad_call_close(int32_t fd);
@@ -66,5 +59,18 @@ int32_t open( const uint8_t* filename);
 int32_t close(int32_t fd);
 int32_t write(int32_t fd, const void* buf, int32_t nbytes);
 int32_t read(int32_t fd, void* buf, int32_t nbytes);
+
+void fop_init();
+fop_table stdin_op;
+fop_table stdout_op;
+fop_table regular_op;
+fop_table dir_op;
+fop_table rtc_op;
+
+
+
+
+
+
 #endif
 

@@ -4,7 +4,7 @@
 
 volatile int RTC_interrupt;
 int time_counter;   //rtc virtualization
-volatile int virtual_frequency;       //rtc virtualization
+volatile int virtual_frequency = 2;       //rtc virtualization
 /*
  * introduction: initialize the rtc
  * input: none
@@ -131,7 +131,7 @@ int RTC_read(int32_t fd, void* buf, int32_t nbytes)
  * input: void* buffer (contains the frequency)
  * output: 0 for success, 1 for fail, if the frequency is not the power of 2, fail
  */
-int RTC_write(int32_t fd, void* buf, int32_t nbytes)
+int RTC_write(int32_t fd, const void* buf, int32_t nbytes)
 {
     // int frequency;
     // int rate;

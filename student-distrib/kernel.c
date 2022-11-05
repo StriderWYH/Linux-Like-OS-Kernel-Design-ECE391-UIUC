@@ -15,6 +15,8 @@
 #include "rtc.h"
 #include "idt.h"
 
+#include "systemcall.h"
+
 #define RUN_TESTS
 
 /* Macros. */
@@ -145,6 +147,8 @@ void entry(unsigned long magic, unsigned long addr) {
     //initial the PDE and PTE table and turn on paging
     page_init();
     //printf("initializing the IDT......\n");
+
+    fop_init();
     
     file_sys_init(filesys);
     idt_init();
@@ -169,7 +173,7 @@ void entry(unsigned long magic, unsigned long addr) {
     launch_tests();
 #endif
     /* Execute the first program ("shell") ... */
-
+    //execute((uint8_t *)"shell");
     /* Spin (nicely, so we don't chew up cycles) */
     asm volatile (".1: hlt; jmp .1;");
 }

@@ -4,8 +4,12 @@
 #include "rtc.h"
 #include "keyboard.h"
 #include "lib.h"
+<<<<<<< HEAD
 #include "systemcall.h"
 
+=======
+#include "systemcall_wrapper.h"
+>>>>>>> c07946bf90864bf00404a0d6513139fdb6da0614
 #include "key_sd.h"
 /*
 idt_init;
@@ -68,7 +72,7 @@ idt_init ()
     //printf("%d\n",idt[0x21].present);
     SET_IDT_ENTRY (idt[rtc_index], rtc_handler);  // For RTC handler, we put index into the index 24 in the table
     
-    SET_IDT_ENTRY (idt[0X80], SYSCALL);   // for system call, we put the index into the index 0x80 in the table
+    SET_IDT_ENTRY (idt[0X80], systemcall_wrapper);   // for system call, we put the index into the index 0x80 in the table
 
 }
 
