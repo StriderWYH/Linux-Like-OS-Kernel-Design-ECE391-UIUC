@@ -538,7 +538,6 @@ void oc_test(){
 // test read and write function for txt files without offset
 void r_w_test_smfile(){
 	uint8_t buf[500];
-	int esp;
 	int32_t fd_cur,i,result;
 	i = 0;
 	clean_screen();
@@ -547,9 +546,6 @@ void r_w_test_smfile(){
 		printf("fail opening frame0.txt\n");
 		return;
 	}
-	asm("movl %%esp, %0" : "=r"(esp) :);
-    pcb_t *pcb = (pcb_t *)( esp & PCB_MSK);
-
 	read(fd_cur,buf,500);
 	while((buf[i]) != '\0'){
 		putc(buf[i]);
@@ -569,12 +565,12 @@ void r_w_test_smfile(){
 }
 // read a file, include offset
 void r_file_offset(){
-	int32_t result,i,length;
+	int32_t result,i;
 	i = 0;
 	clean_screen();
-	result = open((uint8_t*)"fram0.txt");
+	result = open((uint8_t*)"frame0.txt");
 	if(result == -1){
-		printf("fail opening fram0.txt\n");
+		printf("fail opening frame0.txt\n");
 		return;
 	}
 
@@ -631,7 +627,10 @@ void launch_tests(){
 	//file_read_testsf();
 	//file_read_testexe();
 	//file_read_testlf();
-	execute_test();
+	//execute_test();
+	r_file_offset();
+	//r_w_test_smfile();
+	//oc_test();
 	//print_out_all_files();
 	// launch your tests here
 }
