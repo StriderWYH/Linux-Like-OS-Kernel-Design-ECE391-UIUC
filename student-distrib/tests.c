@@ -6,6 +6,7 @@
 #include "keyboard.h"
 #include "file_sys.h"
 #include "systemcall.h"
+#include "systemcall.h"
 #define PASS 1
 #define FAIL 0
 
@@ -478,9 +479,13 @@ void systemcall_rtc_test()
 
 
 
+
+void execute_test(){
+	printf("execute test: shell doc");
+	execute((uint8_t *)"shell");
+}
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
-
 
 /* Test suite entry point */
 void launch_tests(){
@@ -507,6 +512,7 @@ void launch_tests(){
 	//file_read_testsf();
 	//file_read_testexe();
 	//file_read_testlf();
+	execute_test();
 	//print_out_all_files();
 	// launch your tests here
 }

@@ -15,6 +15,39 @@
 #define KERNEL_MEM_END  0x800000 
 #define WORD_SIZE       4
 
+// fop_table rtc_op = { RTC_read, RTC_write, RTC_open, RTC_close};
+// fop_table stdin_op = { terminal_read, terminal_write, bad_call_open, bad_call_close};
+// fop_table stdout_op = { terminal_read,terminal_write, bad_call_open, bad_call_close};
+// fop_table regular_op = { file_read, file_write, file_open, file_close};
+// fop_table dir_op = {dir_read, dir_write, dir_open, dir_close};
+
+void fop_init(){
+    rtc_op.close = RTC_close;
+    rtc_op.open = RTC_open;
+    rtc_op.read = RTC_read;
+    rtc_op.write = RTC_write;
+
+    stdin_op.close = bad_call_close;
+    stdin_op.open = bad_call_open;
+    stdin_op.read = terminal_read;
+    stdin_op.write = terminal_write;
+
+    stdout_op.close = bad_call_close;
+    stdout_op.open = bad_call_open;
+    stdout_op.read = terminal_read;
+    stdout_op.write = terminal_write;
+
+    regular_op.read = file_read;
+    regular_op.write = file_write;
+    regular_op.open = file_open;
+    regular_op.close = file_close;
+
+    dir_op.read = dir_read;
+    dir_op.write = dir_write;
+    dir_op.open = dir_open;
+    dir_op.close = dir_close;
+}
+
 int32_t process_table[MAX_PROC] = {0,0,0,0,0,0};
 // int32_t (*file_table[3][4])() = {
 // {RTC_read, RTC_write, RTC_open, RTC_close},
@@ -26,7 +59,7 @@ int32_t execute(const uint8_t* command) {
     uint8_t fname[FNAME_SIZE];
     uint8_t buf[BUFSIZE];
     dentry_t dentry;
-    uint32_t offset = 0;
+    //uint32_t offset = 0;
     uint8_t arg[ARG_NUM];
     uint8_t exe_check[FOUR_BYTE] = {
         MAGIC_ONE, MAGIC_TWO, MAGIC_THREE, MAGIC_FOUR
@@ -36,9 +69,9 @@ int32_t execute(const uint8_t* command) {
     int i = 0; // The index for command
     int j = 0; // The index for fname
     int z = 0; // The index for argument
-    int space_counter = 0;
-    int start_valid = 0;
-    int cmd_length = 0;
+    //int space_counter = 0;
+    //int start_valid = 0;
+    //int cmd_length = 0;
     int esp, ebp;
     //****************************************************************
     //variables
@@ -53,7 +86,7 @@ int32_t execute(const uint8_t* command) {
     }
     //start_valid = i;
     // first set the fname buffer
-    while(command[i] != ' '){
+    while((command[i] != ' ') && (command[i] != '\0')){
         if ((i > 127) || (j > 31 )) return -1;// over load the keyboard size or over load the fname size
         fname[j] = command[i];
         j++;
@@ -77,13 +110,13 @@ int32_t execute(const uint8_t* command) {
 
     // check if the four magic numbers are correct
     if(!read_data(dentry.inode_num, 0, buf, FOUR_BYTE)) return -1;
-    if(strncmp((const int8_t*)buf, "ELF", BUFSIZE)) return -1;
-    /*
+    //if(strncmp((const int8_t*)buf, "ELF", BUFSIZE)) return -1;
+    
     for (i = 0; i < FOUR_BYTE; i++) {
         if (buf[i] != exe_check[i])
             return -1;
     }
-    */
+    
     // get the entry point of the executable
     read_data(dentry.inode_num, 24, buf, FOUR_BYTE);
     code_eip = *((uint32_t*)buf);
@@ -93,7 +126,10 @@ int32_t execute(const uint8_t* command) {
         if (index == MAX_PROC){
             return -1;
         }
-        if (!process_table[index]) break;
+        if (!process_table[index]){
+            process_table[index] = 1;
+            break;
+        }
     }
     entry.MBPDE.value = 0;
     entry.MBPDE.present = 1;
@@ -119,7 +155,7 @@ int32_t execute(const uint8_t* command) {
         parent_pcb = (pcb_t*)(SIZE_OF_8MB - index * SIZE_OF_8KB);    // parent is the last process
         new_pcb->parent_pid = parent_pcb->pid;     // copy the parent pid
     }
-    strncpy(new_pcb->args,arg,100);
+    strcpy((int8_t*)new_pcb->args,(int8_t*)arg);
     new_pcb->pid = index;
 
     // fill up the stdin and stdout file
@@ -147,26 +183,39 @@ int32_t execute(const uint8_t* command) {
     // 6. context switch
     tss.ss0 = KERNEL_DS;
     tss.esp0 = KERNEL_MEM_END - (index) * SIZE_OF_8KB - WORD_SIZE;
+
     asm volatile(
-        "xorl %%eax, %%eax;"
-        "movw %w0, %%ax;"
+        "mov  $0x2B, %%ax;"
         "movw %%ax, %%ds;"
-        "pushl %%eax;"          // push the user data segment information
-        "pushl %1;"             // push user program esp
+        "pushl $0x2B;"          // push the user data segment information
+        "pushl %0;"             // push user program esp
         "pushfl;"               // push eflags
         "popl %%eax;"           // manually enable the interrupt
         "orl $0x200, %%eax;"
         "pushl %%eax;"
-        "pushl %2;"             // push code segment information
-        "pushl %3;"             // push user program eip
+        "pushl $0x23;"             // push code segment information
+        "pushl %1;"             // push user program eip
         "iret;"
-        "return_to_execute:;"
+        "BACK_TO_RET:;"       // where the execute finally come back
+        "leave;"
+        "ret;"
         : /* no outputs */
-        : "g" (USER_DS), "g" (SIZE_OF_128MB + SIZE_OF_4MB - WORD_SIZE), "g" (USER_CS), "g" (code_eip)
+        : "g" (SIZE_OF_128MB + SIZE_OF_4MB - WORD_SIZE), "g" (code_eip)
         : "eax"
     );
     return 0;
 }
+
+
+int32_t halt(uint8_t status){
+    return 0;
+}
+
+
+
+
+
+
 
 /*
  *  bad_call_open
