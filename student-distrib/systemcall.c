@@ -54,6 +54,9 @@ int32_t process_table[MAX_PROC] = {0,0,0,0,0,0};
 int32_t current_pid = -1;
 
 
+
+
+
 // int32_t (*file_table[3][4])() = {
 // {RTC_read, RTC_write, RTC_open, RTC_close},
 // {dir_read, dir_write, dir_open, dir_close},
@@ -222,6 +225,7 @@ int32_t execute(const uint8_t* command) {
 }
 
 
+
 int32_t halt(uint8_t status){
     int32_t esp;
     int32_t ebp;
@@ -272,7 +276,7 @@ int32_t halt(uint8_t status){
         "movl %0, %%eax;"
         "movl %1, %%esp;"
         "movl %2, %%ebp;"
-        "jmp BACK_TO_RET;"
+        "jmp RET_FROM_IRET;"
         :
         :"g"(return_value), "g" (esp), "g" (ebp)
         :"eax"
@@ -281,11 +285,6 @@ int32_t halt(uint8_t status){
     return -1;
     return 0;
 }
-
-
-
-
-
 
 
 /*

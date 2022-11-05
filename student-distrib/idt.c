@@ -4,12 +4,9 @@
 #include "rtc.h"
 #include "keyboard.h"
 #include "lib.h"
-<<<<<<< HEAD
 #include "systemcall.h"
 
-=======
 #include "systemcall_wrapper.h"
->>>>>>> c07946bf90864bf00404a0d6513139fdb6da0614
 #include "key_sd.h"
 /*
 idt_init;
