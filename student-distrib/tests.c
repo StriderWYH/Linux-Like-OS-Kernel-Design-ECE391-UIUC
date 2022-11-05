@@ -5,6 +5,8 @@
 #include "i8259.h"
 #include "keyboard.h"
 #include "file_sys.h"
+#include "systemcall.h"
+
 #define PASS 1
 #define FAIL 0
 
@@ -442,6 +444,159 @@ void print_out_all_files(){
 
 }
 /* Checkpoint 3 tests */
+
+
+void oc_test(){
+	int result;
+	int esp;
+	result = open( (uint8_t*)"stdin");
+	if( result != 0){
+		printf(" fail to assaign fd 0 to stdin\n");
+		return;
+	}
+	result = open( (uint8_t*)"stdout");
+	if( result != 1){
+		printf(" fail to assaign fd 1 to stdout\n");
+		return;
+	}
+	result = open( (uint8_t*) "frame0.txt");
+	if( result != 2){
+		printf(" fail to assaign fd 2 to frame0.txt\n");
+		return;
+	}
+	result = open( (uint8_t*) "verylargetextwithverylongname.tx");
+	if( result != 3){
+		printf(" fail to assaign fd 3 to verylargetextwithverylongname.tx\n");
+		return;
+	}
+	result = open((uint8_t*) "nosuchafile");
+	if( result != -1){
+		printf(" open() fails to return -1 when open a non-existing file\n");
+		return;
+	}
+    // fetch the address of the current PCB
+    asm("movl %%esp, %0" : "=r"(esp) :);
+    pcb_t *pcb = (pcb_t *)( esp & PCB_MSK);
+
+	if(pcb->file_array[0].flags == 0){
+		printf("fail opening the stdin\n");
+		return;		
+	}
+
+	if(pcb->file_array[1].flags == 0){
+		printf("fail opening stdout\n");
+		return;
+	}
+
+	if(pcb->file_array[2].flags == 0){
+		printf("fail opening frame0.txt\n");
+		return;
+	}
+	if(pcb->file_array[3].flags == 0){
+		printf("fail opening verylargetextwithverylongname.tx\n");
+		return;
+	}
+	if(pcb->file_array[4].flags == 1){
+		printf("open a not existing file\n");
+		return;
+	}
+
+	result = close(0);
+	if( result != -1){
+		printf(" we should not allow close stdin\n");
+		return;
+	}
+	result = close(1);
+	if( result != -1){
+		printf(" we should not allow close stdout\n");
+		return;
+	}
+	result = close(2);
+	if(pcb->file_array[2].flags == 1){
+		printf("fail closing frame0.txt\n");
+		return;
+	}
+	result = close(3);
+	if(pcb->file_array[3].flags == 1){
+		printf("fail closing verylargetextwithverylongname.tx\n");
+		return;
+	}
+	result = close(4);
+	if( result != -1){
+		printf(" we should not allow close a null file\n");
+		return;
+	}
+	printf("open and close all success \n");
+	return;
+}
+
+// test read and write function for txt files without offset
+void r_w_test_smfile(){
+	uint8_t buf[500];
+	int esp;
+	int32_t fd_cur,i,result;
+	i = 0;
+	clean_screen();
+	fd_cur = open((uint8_t*)"frame0.txt");
+	if(fd_cur == -1){
+		printf("fail opening frame0.txt\n");
+		return;
+	}
+	asm("movl %%esp, %0" : "=r"(esp) :);
+    pcb_t *pcb = (pcb_t *)( esp & PCB_MSK);
+
+	read(fd_cur,buf,500);
+	while((buf[i]) != '\0'){
+		putc(buf[i]);
+		i++;
+	}
+	result = write(fd_cur,buf,500);
+	if(result != -1){
+		printf(" We should not allow write into a txt file\n");
+	}
+	
+	printf("\n");
+	printf("file_name: fram0.txt");
+	close(fd_cur);
+	
+	return;
+
+}
+// read a file, include offset
+void r_file_offset(){
+	int32_t result,i,length;
+	i = 0;
+	clean_screen();
+	result = open((uint8_t*)"fram0.txt");
+	if(result == -1){
+		printf("fail opening fram0.txt\n");
+		return;
+	}
+
+	uint8_t buf[10];
+	read(result,buf,10);
+	while(i < 10){
+		if(buf[i] != '\0'){
+		//print_stuff(buf[i],i);
+		putc(buf[i]);
+		}
+		i++;
+	}
+
+	uint8_t buf2[10];
+	read(result,buf2,10);
+	while(i < 10){
+		if(buf2[i] != '\0'){
+		//print_stuff(buf[i],i);
+		putc(buf2[i]);
+		}
+		i++;
+	}
+	printf("\n");
+	printf("all success");
+	return;
+}
+
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
 
@@ -452,7 +607,7 @@ void launch_tests(){
 
 	//div_test();
 	//syscall_test();
-	rtc_test();
+	//rtc_test();
 
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("rtc_idt_entry test",idt_special_test_forRtc());
