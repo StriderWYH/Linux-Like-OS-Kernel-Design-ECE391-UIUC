@@ -4,7 +4,7 @@
 
 volatile int RTC_interrupt;
 int time_counter;   //rtc virtualization
-volatile int virtual_frequency;       //rtc virtualization
+volatile int virtual_frequency = 2;       //rtc virtualization
 /*
  * introduction: initialize the rtc
  * input: none

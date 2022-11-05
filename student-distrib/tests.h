@@ -30,5 +30,6 @@ void rtc_test();
 
 //checkpoint 3
 void systemcall_rtc_test();
+void systemcall_terminal_test();
 #endif /* TESTS_H */
 

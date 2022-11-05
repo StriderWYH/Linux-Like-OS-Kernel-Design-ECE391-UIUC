@@ -6,7 +6,7 @@
 #include "keyboard.h"
 #include "file_sys.h"
 #include "systemcall.h"
-#include "systemcall.h"
+
 #define PASS 1
 #define FAIL 0
 
@@ -450,13 +450,22 @@ void systemcall_rtc_test()
 	int i = 0;
 	int index_ds = 0;
 	int buffer_1[1];
-	int32_t fd = open("rtc");
+	int32_t fd = open((uint8_t*)"rtc");
 	int32_t result = 0;
 	int32_t nbyte = 0;
 	clean_screen();
+
+	printf("fd is : %d \n",fd);
+	int esp;
+    // fetch the address of the current PCB
+    asm("movl %%esp, %0" : "=r"(esp) :);
+    pcb_t *pcb = (pcb_t *)( esp & PCB_MSK);
+	uint32_t flag = pcb->file_array[fd].flags;
+	printf("flag is : %d\n",flag);
+
 	buffer_1[0] = 2;
 	if (fd==-1) {return;}
-	RTC_open("rtc");
+	RTC_open((uint8_t*)"rtc");
 	while(1){
 		
 		write(fd,buffer_1,nbyte);
@@ -471,11 +480,27 @@ void systemcall_rtc_test()
 		i++;
 	}
 	result = close(fd);
+	//printf("result is : %d\n",result);
 	//rtc_interrupt_handler();
 
 	//return PASS;
 }
 
+void systemcall_terminal_test()
+{
+	int32_t fd = open((uint8_t*)"stdin");
+	int32_t result = 0;
+	terminal_open(NULL);
+	while(1){
+		int systemcall_terminal_flag;
+		while(!keyboard_flag); 
+        systemcall_terminal_flag = read(fd,keyboard_buffer,global_keyboard_index);
+        write(fd,terminal_buffer,systemcall_terminal_flag);
+		//terminal_read();
+	}    
+	terminal_close(0);
+	result = close(fd);
+}
 
 
 
@@ -493,7 +518,7 @@ void launch_tests(){
 
 	//div_test();
 	//syscall_test();
-	rtc_test();
+	//rtc_test();
 	//systemcall_rtc_test();
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("rtc_idt_entry test",idt_special_test_forRtc());
@@ -508,11 +533,12 @@ void launch_tests(){
 	//TEST_OUTPUT("kernel_paging_out_test", kernel_paging_out_test());
 
 	//PagingFault_test();
-	//terminal_test();
+	terminal_test();
+	//systemcall_terminal_test();
 	//file_read_testsf();
 	//file_read_testexe();
 	//file_read_testlf();
-	execute_test();
+	//execute_test();
 	//print_out_all_files();
 	// launch your tests here
 }
