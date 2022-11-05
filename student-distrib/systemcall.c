@@ -78,6 +78,7 @@ int32_t execute(const uint8_t* command) {
     int index;
     PDE entry;
     //***************************************************************
+
     if(!command){  // check whether it is null
         return -1;
     }
@@ -131,6 +132,7 @@ int32_t execute(const uint8_t* command) {
             break;
         }
     }
+    putc("dsdsdsd");
     entry.MBPDE.value = 0;
     entry.MBPDE.present = 1;
     entry.MBPDE.R_W = 1;
@@ -183,8 +185,9 @@ int32_t execute(const uint8_t* command) {
     // 6. context switch
     tss.ss0 = KERNEL_DS;
     tss.esp0 = KERNEL_MEM_END - (index) * SIZE_OF_8KB - WORD_SIZE;
-
+    
     asm volatile(
+        
         "mov  $0x2B, %%ax;"
         "movw %%ax, %%ds;"
         "pushl $0x2B;"          // push the user data segment information
@@ -196,11 +199,9 @@ int32_t execute(const uint8_t* command) {
         "pushl $0x23;"             // push code segment information
         "pushl %1;"             // push user program eip
         "iret;"
-        "BACK_TO_RET:;"       // where the execute finally come back
-        "leave;"
-        "ret;"
+
         : /* no outputs */
-        : "g" (SIZE_OF_128MB + SIZE_OF_4MB - WORD_SIZE), "g" (code_eip)
+        : "r" (SIZE_OF_128MB + SIZE_OF_4MB - WORD_SIZE), "r" (code_eip)
         : "eax"
     );
     return 0;

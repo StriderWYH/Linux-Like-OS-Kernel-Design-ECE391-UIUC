@@ -19,7 +19,7 @@ int32_t read_dentry_by_name(const uint8_t*fname, dentry_t* dentry){
     int32_t  nul_flag = 0;                      // flag set to 1 if the current filename is not nul terminated
     int32_t i;
     //int32_t result;                            // store the compare result
-
+    
     fname_length = strlen((int8_t*)fname);
     /* if the fname is null or too long , return -1 */
     if(fname_length <=0 || fname_length > FILENAME_LEN) return -1;

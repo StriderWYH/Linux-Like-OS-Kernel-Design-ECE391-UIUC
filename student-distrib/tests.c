@@ -271,7 +271,7 @@ void rtc_test()
  * output: none
  */
 void terminal_test(){
-	terminal_open(NULL);
+	//terminal_open((uint8_t*)"stdin");
 	while(1){
 		int write;
 		while(!keyboard_flag); 
@@ -279,7 +279,7 @@ void terminal_test(){
         terminal_write(0,terminal_buffer,write);
 		//terminal_read();
 	}    
-	terminal_close(0);
+	//sterminal_close(0);
 
 }
 
@@ -450,7 +450,6 @@ void execute_test(){
 }
 /* Checkpoint 4 tests */
 /* Checkpoint 5 tests */
-
 
 /* Test suite entry point */
 void launch_tests(){
