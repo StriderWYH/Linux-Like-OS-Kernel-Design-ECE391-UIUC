@@ -506,7 +506,7 @@ void systemcall_terminal_test()
 
 
 void execute_test(){
-	printf("execute test: shell doc");
+	printf("execute test: shell\n");
 	execute((uint8_t *)"shell");
 }
 
@@ -704,7 +704,7 @@ void read_dir(){
 
 /* Test suite entry point */
 void launch_tests(){
-
+	clean_screen();
 
 	//div_test();
 	//syscall_test();
@@ -728,11 +728,11 @@ void launch_tests(){
 	//file_read_testsf();
 	//file_read_testexe();
 	//file_read_testlf();
-	//execute_test();
+	execute_test();
 	//r_file_offset();
 	//r_w_test_smfile();
 	//oc_test();
-	read_dir();
+	//read_dir();
 	//print_out_all_files();
 	// launch your tests here
 }

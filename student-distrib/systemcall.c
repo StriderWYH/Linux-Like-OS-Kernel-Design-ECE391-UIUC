@@ -63,6 +63,7 @@ int32_t current_pid = -1;
 // {file_read, file_write, file_open, file_close}
 // };
 int32_t execute(const uint8_t* command) {
+    puts("executes called \n");
     // 1. parse arguments
     uint8_t fname[FNAME_SIZE];
     uint8_t buf[BUFSIZE];
@@ -227,6 +228,7 @@ int32_t execute(const uint8_t* command) {
 
 
 int32_t halt(uint8_t status){
+    puts("halt called \n");
     int32_t esp;
     int32_t ebp;
     pcb_t* current_pcb_address;
@@ -313,6 +315,7 @@ int32_t bad_call_close(int32_t fd){
  *                      -1 - the fname is too long or null or no such file called fname or open fails
  */
 int32_t open( const uint8_t* filename){
+    puts("open called \n");
     int32_t fd,cur_file_type,result;
     dentry_t cur_dentry;
     int esp;
@@ -391,6 +394,7 @@ int32_t open( const uint8_t* filename){
  *                      -1 - the fd is out of rage or equal to 0 or 1 or close a not using file
  */
 int32_t close(int32_t fd){
+    puts("close called \n");
     int result;
     int esp;
     // should not close the stdin and stdout, or the fd is out of range
@@ -413,6 +417,7 @@ int32_t close(int32_t fd){
 }
 int32_t write(int32_t fd, const void* buf, int32_t nbytes)
 {
+    puts("write called \n");
     int esp;
     asm("movl %%esp, %0" : "=r"(esp) :);
     pcb_t* pcb = (pcb_t*)(esp & 0x7FE000);
@@ -432,6 +437,7 @@ int32_t write(int32_t fd, const void* buf, int32_t nbytes)
 
 int32_t read(int32_t fd, void* buf, int32_t nbytes)
 {
+    puts("read called \n");
     int esp;
     asm("movl %%esp, %0" : "=r"(esp) :);
     pcb_t* pcb = (pcb_t*)(esp & 0x7FE000);

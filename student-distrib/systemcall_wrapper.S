@@ -14,10 +14,11 @@ systemcall_wrapper:
     pushl %edx
     pushl %ecx
     pushl %ebx
+    addl $-1,%eax
     call *systemcall_table(,%eax,4)
-    popl %edx
-    popl %ecx
     popl %ebx
+    popl %ecx
+    popl %edx
     jmp Done
 
 invalid:
