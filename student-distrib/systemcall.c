@@ -14,8 +14,13 @@
 #define VIRTUAL_START   32
 #define KERNEL_MEM_END  0x800000 
 #define WORD_SIZE       4
+#define HALT_EXCEPTION  0x1F
+#define KERNEL_STACK_OF 4
 
 int32_t process_table[MAX_PROC] = {0,0,0,0,0,0};
+int32_t current_pid = -1;
+
+
 // int32_t (*file_table[3][4])() = {
 // {RTC_read, RTC_write, RTC_open, RTC_close},
 // {dir_read, dir_write, dir_open, dir_close},
@@ -93,15 +98,12 @@ int32_t execute(const uint8_t* command) {
         if (index == MAX_PROC){
             return -1;
         }
-<<<<<<< HEAD
-        if (!process_table[index]) {
-=======
         if (!process_table[index]){
->>>>>>> 84030e6afd3b220e995c3aa42b832d84f00dda31
             process_table[index] = 1;
             break;
         }
     }
+    current_pid = index;
     entry.MBPDE.value = 0;
     entry.MBPDE.present = 1;
     entry.MBPDE.R_W = 1;
@@ -179,7 +181,62 @@ int32_t execute(const uint8_t* command) {
 
 
 int32_t halt(uint8_t status){
+    int32_t esp;
+    int32_t ebp;
+    pcb_t* current_pcb_address;
+    PDE entry;
+    int32_t return_value;
+    fd_t* current_filearray;
+    int32_t file_index;
+    cli();
+    if (status == HALT_EXCEPTION){
+        return_value = 256;                         //if halt by exception, halt handler should return 256
+    }
+    else return_value = 0;
 
+    current_pcb_address = (pcb_t*)(SIZE_OF_8MB - SIZE_OF_8KB * (current_pid + 1));
+    current_filearray = current_pcb_address->file_array;
+    file_index = 0;
+    while (current_filearray[file_index].flags != 0 )
+    {
+        current_filearray[file_index].file_position = 0;
+        current_filearray[file_index].inode = -1;
+        current_filearray[file_index].flags = 0;
+        current_filearray[file_index].optable_ptr = 0;
+        file_index++;
+    }
+    esp = current_pcb_address->parent_esp;
+    ebp = current_pcb_address->parent_ebp;
+    tss.ss0 = KERNEL_DS;
+    tss.esp0 = SIZE_OF_8MB - SIZE_OF_8KB * current_pcb_address->parent_pid - KERNEL_STACK_OF;
+    
+    entry.MBPDE.value = 0;
+    entry.MBPDE.present = 1;
+    entry.MBPDE.R_W = 1;
+    entry.MBPDE.page_size = 1;
+    entry.MBPDE.user_or_Supervisor = 1;
+    entry.MBPDE.table_base_add = (uint32_t)(current_pcb_address->parent_pid * SIZE_OF_4MB + 2 * SIZE_OF_4MB);   //where kernel is a constant which equal to 4 MB
+    PDE_TABLE[VIRTUAL_START] = entry;      //start from 128 MB
+    asm volatile(
+        "movl %%cr3, %%eax;"
+        "movl %%eax, %%cr3;"
+        ::: "eax"
+    );
+    process_table[current_pid] = 0;
+    if (current_pid == 0){
+        execute((uint8_t*)"shell");
+    }
+    asm volatile(
+        "movl %0, %%eax;"
+        "movl %1, %%esp;"
+        "movl %2, %%ebp;"
+        "jmp BACK_TO_RET;"
+        :
+        :"g"(return_value), "g" (esp), "g" (ebp)
+        :"eax"
+    );
+
+    return -1;
 }
 
 
