@@ -187,22 +187,30 @@ int32_t execute(const uint8_t* command) {
     tss.esp0 = KERNEL_MEM_END - (index) * SIZE_OF_8KB - WORD_SIZE;
     
     asm volatile(
-        
-        "mov  $0x2B, %%ax;"
-        "movw %%ax, %%ds;"
-        "pushl $0x2B;"          // push the user data segment information
-        "pushl %0;"             // push user program esp
-        "pushfl;"               // push eflags
-        "popl %%eax;"           // manually enable the interrupt
-        "orl $0x200, %%eax;"
-        "pushl %%eax;"
-        "pushl $0x23;"             // push code segment information
-        "pushl %1;"             // push user program eip
-        "iret;"
-
-        : /* no outputs */
-        : "r" (SIZE_OF_128MB + SIZE_OF_4MB - WORD_SIZE), "r" (code_eip)
-        : "eax"
+    	"cli;"
+    	// User DS
+    	"mov $0x2B, %%ax;"
+    	"mov %%ax, %%ds;"
+    	"pushl $0x2B;"
+    	// ESP
+    	"movl $0x83FFFFC, %%eax;" // 0x83FFFFC = 128MB + 4MB - 4, everytime we remap, the virtual memory location keeps the same
+    	"pushl %%eax;"
+    	// EFLAG
+    	"pushfl;"
+		"popl %%edx;"
+		"orl $0x200,%%edx;"
+		"pushl %%edx;"
+    	// CS
+    	"pushl $0x23;"
+    	// EIP
+    	"pushl %0;" //eip
+    	"iret;"
+    	"RET_FROM_IRET:;"
+    	"leave;"
+    	"ret;"
+    	: // no outputs
+    	:"r"(code_eip) // input
+    	:"%edx","%eax" 
     );
     return 0;
 }
