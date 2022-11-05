@@ -27,9 +27,14 @@ void file_read_testlf();
 void print_out_all_files();
 //int rtc_test();
 void rtc_test();
+
+//checkpoint 3
+void systemcall_rtc_test();
+void systemcall_terminal_test();
 // CP3
 void r_file_offset();
 void r_w_test_smfile();
 void oc_test();
 void read_dir();
 #endif /* TESTS_H */
+
