@@ -4,7 +4,7 @@
 systemcall_wrapper:
     pushl %esi
     pushl %edi
-    pushl %esp
+
 
     cmpl $1,%eax
     jl invalid
@@ -24,7 +24,7 @@ systemcall_wrapper:
 invalid:
     movl $-1,%eax
 Done:
-    popl %esp
+
     popl %edi
     popl %esi
     IRET

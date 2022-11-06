@@ -63,7 +63,7 @@ int32_t current_pid = -1;
 // {file_read, file_write, file_open, file_close}
 // };
 int32_t execute(const uint8_t* command) {
-    puts("executes called \n");
+    //puts("executes called \n");
     // 1. parse arguments
     uint8_t fname[FNAME_SIZE];
     uint8_t buf[BUFSIZE];
@@ -87,6 +87,10 @@ int32_t execute(const uint8_t* command) {
     int index;
     PDE entry;
     //***************************************************************
+    for(j = 0; j < FNAME_SIZE; j++){
+        fname[j] = '\0';
+    }
+    j = 0;
     cli();
     if(!command){  // check whether it is null
         return -1;
@@ -148,7 +152,7 @@ int32_t execute(const uint8_t* command) {
     entry.MBPDE.R_W = 1;
     entry.MBPDE.page_size = 1;
     entry.MBPDE.user_or_Supervisor = 1;
-    entry.MBPDE.table_base_add = (uint32_t)(index * SIZE_OF_4MB + 2 * SIZE_OF_4MB);   //where kernel is a constant which equal to 4 MB
+    entry.MBPDE.table_base_add = (uint32_t)((index * SIZE_OF_4MB + 2 * SIZE_OF_4MB)>>22);   //where kernel is a constant which equal to 4 MB
     PDE_TABLE[VIRTUAL_START] = entry;      //start from 128 MB
     asm volatile(
         "movl %%cr3, %%eax;"
@@ -228,7 +232,7 @@ int32_t execute(const uint8_t* command) {
 
 
 int32_t halt(uint8_t status){
-    puts("halt called \n");
+    //puts("halt called \n");
     int32_t esp;
     int32_t ebp;
     pcb_t* current_pcb_address;
@@ -263,7 +267,7 @@ int32_t halt(uint8_t status){
     entry.MBPDE.R_W = 1;
     entry.MBPDE.page_size = 1;
     entry.MBPDE.user_or_Supervisor = 1;
-    entry.MBPDE.table_base_add = (uint32_t)(current_pcb_address->parent_pid * SIZE_OF_4MB + 2 * SIZE_OF_4MB);   //where kernel is a constant which equal to 4 MB
+    entry.MBPDE.table_base_add = (uint32_t)((current_pcb_address->parent_pid * SIZE_OF_4MB + 2 * SIZE_OF_4MB) >>22);   //where kernel is a constant which equal to 4 MB
     PDE_TABLE[VIRTUAL_START] = entry;      //start from 128 MB
     asm volatile(
         "movl %%cr3, %%eax;"
@@ -273,6 +277,9 @@ int32_t halt(uint8_t status){
     process_table[current_pid] = 0;
     if (current_pid == 0){
         execute((uint8_t*)"shell");
+    }
+    else{
+        current_pid = current_pcb_address->parent_pid;
     }
     asm volatile(
         "movl %0, %%eax;"
@@ -315,7 +322,7 @@ int32_t bad_call_close(int32_t fd){
  *                      -1 - the fname is too long or null or no such file called fname or open fails
  */
 int32_t open( const uint8_t* filename){
-    puts("open called \n");
+    //puts("open called \n");
     int32_t fd,cur_file_type,result;
     dentry_t cur_dentry;
     int esp;
@@ -378,7 +385,8 @@ int32_t open( const uint8_t* filename){
     default:
         return -1;
     }
-
+    result = pcb->file_array[fd].optable_ptr->open(fd);
+    //call the open function
     return fd;
 }
 
@@ -417,7 +425,7 @@ int32_t close(int32_t fd){
 }
 int32_t write(int32_t fd, const void* buf, int32_t nbytes)
 {
-    puts("write called \n");
+    //puts("write called \n");
     int esp;
     asm("movl %%esp, %0" : "=r"(esp) :);
     pcb_t* pcb = (pcb_t*)(esp & 0x7FE000);
@@ -437,7 +445,7 @@ int32_t write(int32_t fd, const void* buf, int32_t nbytes)
 
 int32_t read(int32_t fd, void* buf, int32_t nbytes)
 {
-    puts("read called \n");
+    //puts("read called \n");
     int esp;
     asm("movl %%esp, %0" : "=r"(esp) :);
     pcb_t* pcb = (pcb_t*)(esp & 0x7FE000);

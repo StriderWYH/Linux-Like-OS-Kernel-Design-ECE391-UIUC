@@ -329,6 +329,9 @@ int terminal_write(int32_t fd, const void* buf, int32_t nbytes){
     //if (nbytes > 80)  scrolling(1);
     //puts("this is output:");
     //putc(termi_buf[2]);
+    if(nbytes == 0){
+        nbytes = strlen(termi_buf);
+    }
     for(i = 0; i < nbytes; i++){
         // if((i == 80) & (terminal_buffer[i] != '\n')){    // if it meet the end of the line or user pressed an "enter" 80 is the end character of the line
         //     change_line(1);

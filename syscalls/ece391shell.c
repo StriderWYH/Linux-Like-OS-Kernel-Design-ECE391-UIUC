@@ -25,6 +25,7 @@ int main ()
 	if ('\0' == buf[0])
 	    continue;
 	rval = ece391_execute (buf);
+
 	if (-1 == rval)
 	    ece391_fdputs (1, (uint8_t*)"no such command\n");
 	else if (256 == rval)
