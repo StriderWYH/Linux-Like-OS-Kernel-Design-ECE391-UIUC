@@ -511,22 +511,18 @@ void execute_test(){
 	printf("execute test: shell\n");
 	execute((uint8_t *)"shell");
 }
-
-// test all the return value of open and close including:
-// stdin, stdout, frame0.txt, verylargetextwithverylongname.tx and a non-existing file
+/*
+ * oc_test()
+ * Description: test all the return value of open and close including: stdin, stdout, frame0.txt, verylargetextwithverylongname.tx and a non-existing file
+ * INPUT: NONE
+ * OUTPUT: NONE
+ * Return Value: fail (warning sentence) or sucess (nothing)
+ * Side Effects: clean the screen
+ */
 void oc_test(){
 	int result;
 	int esp;
-	result = open( (uint8_t*)"stdin");
-	if( result != 0){
-		printf(" fail to assaign fd 0 to stdin\n");
-		return;
-	}
-	result = open( (uint8_t*)"stdout");
-	if( result != 1){
-		printf(" fail to assaign fd 1 to stdout\n");
-		return;
-	}
+	
 	result = open( (uint8_t*) "frame0.txt");
 	if( result != 2){
 		printf(" fail to assaign fd 2 to frame0.txt\n");
@@ -545,16 +541,6 @@ void oc_test(){
     // fetch the address of the current PCB
     asm("movl %%esp, %0" : "=r"(esp) :);
     pcb_t *pcb = (pcb_t *)( esp & PCB_MSK);
-
-	if(pcb->file_array[0].flags == 0){
-		printf("fail opening the stdin\n");
-		return;		
-	}
-
-	if(pcb->file_array[1].flags == 0){
-		printf("fail opening stdout\n");
-		return;
-	}
 
 	if(pcb->file_array[2].flags == 0){
 		printf("fail opening frame0.txt\n");
@@ -597,8 +583,14 @@ void oc_test(){
 	printf("open and close all success \n");
 	return;
 }
-
-// test read and write function for txt files without offset
+/*
+ * r_w_test_smfile()
+ * Description: test read and write function for txt files without offset
+ * INPUT: NONE
+ * OUTPUT: NONE
+ * Return Value: fail (warning sentence) or sucess (nothing)
+ * Side Effects: clean the screen
+ */
 void r_w_test_smfile(){
 	uint8_t buf[500];
 	int32_t fd_cur,i,result;
@@ -626,7 +618,15 @@ void r_w_test_smfile(){
 	return;
 
 }
-// read a file, include offset
+
+/*
+ * r_w_test_smfile()
+ * Description: read a file, include offset
+ * INPUT: NONE
+ * OUTPUT: NONE
+ * Return Value: fail (warning sentence) or sucess (nothing)
+ * Side Effects: clean the screen
+ */
 void r_file_offset(){
 	int esp;
 	int32_t result,i, offset_cur;
@@ -669,6 +669,14 @@ void r_file_offset(){
 	return;
 }
 
+/*
+ * read_dir()
+ * Description: read the file name from a dir 
+ * INPUT: NONE
+ * OUTPUT: NONE
+ * Return Value: fail (warning sentence) or sucess (nothing)
+ * Side Effects: clean the screen
+ */
 void read_dir(){
 	uint32_t i,fd_cur,result;
 	uint8_t filename_buf[33];  // used for print ou the filename with fix format
