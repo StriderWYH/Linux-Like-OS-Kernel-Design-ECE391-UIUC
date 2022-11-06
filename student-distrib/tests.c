@@ -729,9 +729,9 @@ void launch_tests(){
 	clean_screen();
 
 	//div_test();
-	
+	//syscall_test();
 	//rtc_test();
-	//systemcall_rtc_test();
+	
 	//TEST_OUTPUT("idt_test", idt_test());
 	//TEST_OUTPUT("rtc_idt_entry test",idt_special_test_forRtc());
 	//TEST_OUTPUT("Keyboard_idt_entry test",idt_special_test_forKey());
@@ -754,7 +754,7 @@ void launch_tests(){
 	/********************************checkpoint 3 test*************************************/
 	//execute_test();
 	//systemcall_terminal_test();
-	//syscall_test();
+	systemcall_rtc_test();
 	//r_file_offset();
 	//r_w_test_smfile();
 	//oc_test();
