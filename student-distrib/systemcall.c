@@ -455,39 +455,47 @@ int32_t close(int32_t fd){
     // if close fails, return -1
     return -1;
 }
+
+/* introduction: write is funciton used to do the systemcall_write
+ * input: int32_t fd, const void* buf, int32_t nbytes
+ * output: the return value of the correspoding write function
+ */
 int32_t write(int32_t fd, const void* buf, int32_t nbytes)
 {
     //puts("write called \n");
     int esp;
-    asm("movl %%esp, %0" : "=r"(esp) :);
-    pcb_t* pcb = (pcb_t*)(esp & 0x7FE000);
+    asm("movl %%esp, %0" : "=r"(esp) :);        //get esp from the stack
+    pcb_t* pcb = (pcb_t*)(esp & 0x7FE000);      //0x7FE000 is the PCB_mask
     if ((fd<0) || (fd>7) || (buf==NULL) || (nbytes<0))
     {
-        return -1;
+        return -1;      //check if the input value is valid or not
     }
-    if (pcb->file_array[fd].flags == 0)
+    if (pcb->file_array[fd].flags == 0)     //check the flag of the pcb
     {
         return -1;
     }
-    return pcb->file_array[fd].optable_ptr->write(fd,buf,nbytes);
+    return pcb->file_array[fd].optable_ptr->write(fd,buf,nbytes);   //call the correspoding write function 
 }
 
 
-
-
+/* introduction: read is funciton used to do the systemcall_read
+ * input: int32_t fd, const void* buf, int32_t nbytes
+ * output: the return value of the correspoding read function
+ */
 int32_t read(int32_t fd, void* buf, int32_t nbytes)
 {
     //puts("read called \n");
     int esp;
-    asm("movl %%esp, %0" : "=r"(esp) :);
-    pcb_t* pcb = (pcb_t*)(esp & 0x7FE000);
+    asm("movl %%esp, %0" : "=r"(esp) :);    //get esp from the stack
+    pcb_t* pcb = (pcb_t*)(esp & 0x7FE000);  //0x7FE000 is the PCB_mask
     if ((fd<0) || (fd>7) || (buf==NULL) || (nbytes<0))
     {
-        return -1;
+        return -1;          //check if the input value is valid or not
     }
     if (pcb->file_array[fd].flags == 0)
     {
-        return -1;
+        return -1;          //check the flag of the pcb
     }
-    return pcb->file_array[fd].optable_ptr->read(fd,buf,nbytes);
+    return pcb->file_array[fd].optable_ptr->read(fd,buf,nbytes);        //call the correspoding read function 
 }
+
