@@ -44,7 +44,7 @@ int32_t read_dentry_by_name(const uint8_t*fname, dentry_t* dentry){
                 continue;   // if not compatible, check next dentry's fname
             }
         }else{  // otherwise just compare the fname in the dentry with the fname
-            if (!strncmp((int8_t*)fname,boot_block->direntries[i].filename,fname_length)){
+            if ((!strncmp((int8_t*)fname,boot_block->direntries[i].filename,fname_length)) && (strlen(boot_block->direntries[i].filename) == fname_length)){
                 strcpy(dentry->filename,boot_block->direntries[i].filename);
                 dentry->filetype = boot_block->direntries[i].filetype;
                 dentry->inode_num = boot_block->direntries[i].inode_num;
