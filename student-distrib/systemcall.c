@@ -228,7 +228,7 @@ int32_t execute(const uint8_t* command) {
     	// EIP
     	"pushl %0;" //eip
     	"iret;"
-    	"RET_FROM_IRET:;"
+    	"BACK_TO_RET:;"
     	"leave;"
     	"ret;"
     	: // no outputs
@@ -294,7 +294,7 @@ int32_t halt(uint8_t status){
         "movl %0, %%eax;"
         "movl %1, %%esp;"
         "movl %2, %%ebp;"
-        "jmp RET_FROM_IRET;"
+        "jmp BACK_TO_RET"
         :
         :"g"(return_value), "g" (esp), "g" (ebp)
         :"eax"

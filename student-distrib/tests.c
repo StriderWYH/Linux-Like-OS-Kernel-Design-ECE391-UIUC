@@ -732,7 +732,7 @@ void launch_tests(){
 	//file_read_testlf();
 
 	
-	//execute_test();
+	execute_test();
 	
 	
 	//r_file_offset();
