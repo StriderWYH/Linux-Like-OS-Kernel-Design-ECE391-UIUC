@@ -16,7 +16,9 @@
 #define WORD_SIZE       4
 #define HALT_EXCEPTION  0x1F
 #define KERNEL_STACK_OF 4
-
+#define MAX_BUFFER_UPPER 127
+#define SIZE_OF_NAME 31
+#define ENTRY_OFFSET 24
 // fop_table rtc_op = { RTC_read, RTC_write, RTC_open, RTC_close};
 // fop_table stdin_op = { terminal_read, terminal_write, bad_call_open, bad_call_close};
 // fop_table stdout_op = { terminal_read,terminal_write, bad_call_open, bad_call_close};
@@ -107,7 +109,7 @@ int32_t execute(const uint8_t* command) {
     //start_valid = i;
     // first set the fname buffer
     while((command[i] != ' ') && (command[i] != '\0')){
-        if ((i > 127) || (j > 31 )) return -1;// over load the keyboard size or over load the fname size
+        if ((i > MAX_BUFFER_UPPER) || (j > SIZE_OF_NAME )) return -1;// over load the keyboard size or over load the fname size
         fname[j] = command[i];
         j++;
         //cmd_length++;
@@ -138,7 +140,7 @@ int32_t execute(const uint8_t* command) {
     }
     
     // get the entry point of the executable
-    read_data(dentry.inode_num, 24, buf, FOUR_BYTE);
+    read_data(dentry.inode_num, ENTRY_OFFSET, buf, FOUR_BYTE);
     code_eip = *((uint32_t*)buf);
     
     // 3. set up program paging
@@ -215,24 +217,20 @@ int32_t execute(const uint8_t* command) {
     	"mov $0x2B, %%ax;"
     	"mov %%ax, %%ds;"
     	"pushl $0x2B;"
-    	// ESP
-    	"movl $0x83FFFFC, %%eax;" // 0x83FFFFC = 128MB + 4MB - 4, everytime we remap, the virtual memory location keeps the same
-    	"pushl %%eax;"
-    	// EFLAG
-    	"pushfl;"
+    	"pushl %1;"  // PUSH ESP
+    	
+    	"pushfl;" // PUSH EFLAG
 		"popl %%edx;"
 		"orl $0x200,%%edx;"
 		"pushl %%edx;"
-    	// CS
-    	"pushl $0x23;"
-    	// EIP
+    	"pushl $0x23;" // PUSH CS
     	"pushl %0;" //eip
     	"iret;"
     	"BACK_TO_RET:;"
     	"leave;"
     	"ret;"
     	: // no outputs
-    	:"r"(code_eip) // input
+    	:"r"(code_eip),"r"(SIZE_OF_128MB + SIZE_OF_4MB - WORD_SIZE)// input
     	:"%edx","%eax" 
     );
     return 0;
