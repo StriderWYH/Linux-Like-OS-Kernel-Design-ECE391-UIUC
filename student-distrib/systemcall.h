@@ -7,7 +7,7 @@
 #include "lib.h"
 #include "rtc.h"
 
-#define ARG_NUM 5
+#define ARG_NUM 1024
 #define FNAME_SIZE 32
 #define BUFSIZE 4
 #define FOUR_BYTE 4
@@ -22,7 +22,7 @@
 #define NUM_
 int32_t execute(const uint8_t* command);
 int32_t halt(uint8_t status);
-
+int32_t getargs(uint8_t* buf, int32_t nbytes);
 struct fop_table
 {
     int32_t (*read)(int32_t fd, void* buf, int32_t nbytes);

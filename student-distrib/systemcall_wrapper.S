@@ -11,7 +11,7 @@ systemcall_wrapper:
 
     cmpl $1,%eax
     jl invalid
-    cmpl $6,%eax
+    cmpl $7,%eax
     jg invalid
 
     pushl %edx
@@ -45,6 +45,6 @@ systemcall_table:
     .long	write
     .long	open
     .long   close
-
+    .long   getargs
 
     

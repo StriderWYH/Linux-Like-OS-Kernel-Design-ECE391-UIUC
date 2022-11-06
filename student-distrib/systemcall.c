@@ -237,6 +237,30 @@ int32_t execute(const uint8_t* command) {
     return 0;
 }
 
+int32_t getargs(uint8_t* buf, int32_t nbytes){
+    int i = 0;
+    int esp;
+    // fetch the address of the current PCB
+    asm("movl %%esp, %0" : "=r"(esp) :);
+    pcb_t *pcb = (pcb_t *)( esp & PCB_MSK);
+    if(buf == NULL){
+        return -1;
+    }
+    if((nbytes == 0)){
+        return -1;
+    }
+    // if(nbytes != strlen((const int8_t*)pcb->args)){
+    //     return -1;
+    // }
+
+    for(i = 0; i < nbytes; i++){
+        buf[i] = pcb->args[i];
+    }
+    return 0;
+}
+
+
+
 /*
  *  halt
  *  DESCRIPTION: Halt a process. If halt is called by exception, return 256, if halt shell, shell restart.
