@@ -19,12 +19,15 @@
 #define MAX_BUFFER_UPPER 127
 #define SIZE_OF_NAME 31
 #define ENTRY_OFFSET 24
-// fop_table rtc_op = { RTC_read, RTC_write, RTC_open, RTC_close};
-// fop_table stdin_op = { terminal_read, terminal_write, bad_call_open, bad_call_close};
-// fop_table stdout_op = { terminal_read,terminal_write, bad_call_open, bad_call_close};
-// fop_table regular_op = { file_read, file_write, file_open, file_close};
-// fop_table dir_op = {dir_read, dir_write, dir_open, dir_close};
 
+/*
+ *  fop_init()
+ *  DESCRIPTION: initialize the file operation table of 5 kinds
+ *  INPUTS:  NONE
+ *  OUTPUTS: NONE
+ *  SIDEEFFECT: NONE
+ *  RETURN VALUE: NONE
+ */
 void fop_init(){
     rtc_op.close = RTC_close;
     rtc_op.open = RTC_open;
@@ -383,18 +386,6 @@ int32_t open( const uint8_t* filename){
     // check whether the fdarray is full 
     if(fd == 8) return -1;
     
-    // stdin and stdout use fixed file descriptor index for each of them
-    if(!strncmp((int8_t*)filename, (int8_t*)"stdin",5)){
-        pcb->file_array[0].optable_ptr = &stdin_op;
-        pcb->file_array[0].flags = 1;
-        return 0;
-    }
-    if(!strncmp((int8_t*)filename, (int8_t*)"stdout",6)){
-        pcb->file_array[1].optable_ptr = &stdout_op;
-        pcb->file_array[1].flags = 1;
-        return 1;
-    }
-
     // if the filename(other than stdin or stdout) doesn't exist, return -1
     result = read_dentry_by_name(filename,&cur_dentry);
     if(result == -1) return -1;
@@ -453,7 +444,7 @@ int32_t close(int32_t fd){
     pcb_t *pcb = (pcb_t *)( esp & PCB_MSK);
     // if the file is not in use, close fails
     if(pcb->file_array[fd].flags == 0) return -1;
-
+    // try to close the file
     result = pcb->file_array[fd].optable_ptr->close(fd);
     if(result == 0){
         pcb->file_array[fd].flags = 0;
@@ -461,7 +452,7 @@ int32_t close(int32_t fd){
         pcb->file_array[fd].file_position = 0;
         return 0;
     }
-
+    // if close fails, return -1
     return -1;
 }
 int32_t write(int32_t fd, const void* buf, int32_t nbytes)
