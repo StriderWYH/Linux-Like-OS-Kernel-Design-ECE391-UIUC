@@ -144,31 +144,32 @@ int32_t execute(const uint8_t* command) {
     code_eip = *((uint32_t*)buf);
     
     // 3. set up program paging
-    for (index = 0; index <= MAX_PROC; index ++){
+    for (index = 0; index <= MAX_PROC; index ++){                           //judge current process number
         if (index == MAX_PROC){
-            return -1;
+            puts("The processes reach maximum!\n");
+            return -2;
         }
         if (!process_table[index]){
             process_table[index] = 1;
             break;
         }
     }
-    current_pid = index;
+    current_pid = index;                                                //update current pid
 
-    entry.MBPDE.value = 0;
+    entry.MBPDE.value = 0;                                      //create page for process
     entry.MBPDE.present = 1;
     entry.MBPDE.R_W = 1;
     entry.MBPDE.page_size = 1;
     entry.MBPDE.user_or_Supervisor = 1;
-    entry.MBPDE.table_base_add = (uint32_t)((index * SIZE_OF_4MB + 2 * SIZE_OF_4MB)>>22);   //where kernel is a constant which equal to 4 MB
+    entry.MBPDE.table_base_add = (uint32_t)((index * SIZE_OF_4MB + 2 * SIZE_OF_4MB)>>22);   //where kernel is a constant which equal to 4 MB, 22 = 32 - 10, becaues page bass in entry is high 10 bit
     PDE_TABLE[VIRTUAL_START] = entry;      //start from 128 MB
     asm volatile(
         "movl %%cr3, %%eax;"
         "movl %%eax, %%cr3;"
-        ::: "eax"
+        ::: "eax"                                           //flush the TLB
     );
     // 4. user-level program loader
-    read_data(dentry.inode_num, 0, (uint8_t*)(PROGRAM_IMAGE), SIZE_OF_4MB);
+    read_data(dentry.inode_num, 0, (uint8_t*)(PROGRAM_IMAGE), SIZE_OF_4MB);             //instore the loader
     // 5. create pcb
     pcb_t * new_pcb =  (pcb_t*)(SIZE_OF_8MB - (index + 1) * SIZE_OF_8KB);
     if (index == 0){
@@ -236,7 +237,17 @@ int32_t execute(const uint8_t* command) {
     return 0;
 }
 
+/*
+ *  halt
+ *  DESCRIPTION: Halt a process. If halt is called by exception, return 256, if halt shell, shell restart.
+ *  INPUTS:             status  - judge who call halt function                 
+ *  OUTPUTS:            none
 
+ *  SIDEEFFECT: NONE
+ *  RETURN VALUE:       0 normal success halt
+ *                      256 halt by exception
+ *                      -1 halt wrong
+ */
 
 int32_t halt(uint8_t status){
     //puts("halt called \n");
@@ -251,55 +262,54 @@ int32_t halt(uint8_t status){
     if (status == HALT_EXCEPTION){
         return_value = 256;                         //if halt by exception, halt handler should return 256
     }
-    else return_value = 0;
+    else return_value = 0;                          //normal return
 
-    current_pcb_address = (pcb_t*)(SIZE_OF_8MB - SIZE_OF_8KB * (current_pid + 1));
-    current_filearray = current_pcb_address->file_array;
+    current_pcb_address = (pcb_t*)(SIZE_OF_8MB - SIZE_OF_8KB * (current_pid + 1));      //find the pcb stack in the kernel page
+    current_filearray = current_pcb_address->file_array;                                //find the file array
     file_index = 0;
     while (current_filearray[file_index].flags != 0 )
     {
         current_filearray[file_index].file_position = 0;
         current_filearray[file_index].inode = -1;
         current_filearray[file_index].flags = 0;
-        current_filearray[file_index].optable_ptr = 0;
+        current_filearray[file_index].optable_ptr = 0;                                  // close all files
         file_index++;
     }
     esp = current_pcb_address->parent_esp;
-    ebp = current_pcb_address->parent_ebp;
+    ebp = current_pcb_address->parent_ebp;                                              // restore the parent procss information
     tss.ss0 = KERNEL_DS;
-    tss.esp0 = SIZE_OF_8MB - SIZE_OF_8KB * current_pcb_address->parent_pid - KERNEL_STACK_OF;
+    tss.esp0 = SIZE_OF_8MB - SIZE_OF_8KB * current_pcb_address->parent_pid - KERNEL_STACK_OF;   //restore the tss
     
-    entry.MBPDE.value = 0;
+    entry.MBPDE.value = 0;                                                                  //reload the parent page
     entry.MBPDE.present = 1;
     entry.MBPDE.R_W = 1;
     entry.MBPDE.page_size = 1;
     entry.MBPDE.user_or_Supervisor = 1;
     entry.MBPDE.table_base_add = (uint32_t)((current_pcb_address->parent_pid * SIZE_OF_4MB + 2 * SIZE_OF_4MB) >>22);   //where kernel is a constant which equal to 4 MB
-    PDE_TABLE[VIRTUAL_START] = entry;      //start from 128 MB
+    PDE_TABLE[VIRTUAL_START] = entry;      //start from 128 MB                              //22 = 32 - 10, becaues page bass in entry is high 10 bit
     asm volatile(
-        "movl %%cr3, %%eax;"
+        "movl %%cr3, %%eax;"                                                                            //flush the TLB
         "movl %%eax, %%cr3;"
         ::: "eax"
     );
     process_table[current_pid] = 0;
     if (current_pid == 0){
-        execute((uint8_t*)"shell");
+        execute((uint8_t*)"shell");                                                 //judge if shell is halt, if so, restart it
     }
     else{
-        current_pid = current_pcb_address->parent_pid;
+        current_pid = current_pcb_address->parent_pid;                              //update the current pid
     }
     asm volatile(
         "movl %0, %%eax;"
         "movl %1, %%esp;"
         "movl %2, %%ebp;"
-        "jmp BACK_TO_RET"
+        "jmp BACK_TO_RET"                                                           //store the parameter and resturn to the excute function
         :
         :"g"(return_value), "g" (esp), "g" (ebp)
         :"eax"
     );
 
-    return -1;
-    return 0;
+    return -1;                                                                      //should never reach here, so return -1 for wrong return
 }
 
 

@@ -14,7 +14,7 @@ idt_init initialization thw whole idt table, and set the entry for all the inter
 Input : none
 Output: none
 */
-#define KERNEL_STACK_OF 4
+#define HALT_EXCEPTION 0x1F
 
 
 void 
@@ -85,139 +85,139 @@ void INT_0()
 {
     cli();
     printf ("Divide Error \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 void INT_1() 
 {
     cli();
     printf ("Debug Exception \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 void INT_2() 
 {
     cli();
     printf ("NMI Interrupt \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 void INT_3() 
 {
     cli();
     printf ("Breakpoint exception \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 void INT_4() 
 {
     cli();
     printf ("Overflow exception \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 void INT_5() 
 {
     cli();
     printf ("Bound_range_exceed exception \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 void INT_6() 
 {
     cli();
     printf ("Invalid opcode exception \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 void INT_7() 
 {
     cli();
     printf ("DeviceNotApplicable exception \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 void INT_8() 
 {
     cli();
     printf ("Double Fault exception \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 void INT_9() 
 {
     cli();
     printf ("Coprocessor Segment Overrun exception \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 void INT_10() 
 {
     cli();
     printf ("Invalid TSS Exception \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 void INT_11() 
 {
     cli();
     printf ("Segment Not Present exception \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 void INT_12() 
 {
     cli();
     printf ("Stack Fault exception \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 void INT_13() 
 {
     cli();
     printf ("General Protection exception \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 void INT_14() 
 {
     cli();
     printf ("Page-Fault exception \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 void INT_15() {
     cli();
     printf ("(Intel reserved. Do not use.) \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
     while(1);
 }
 void INT_16() 
 {
     cli();
     printf ("x87 FPU Floating-Point Error \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 void INT_17() 
 {
     cli();
     printf ("Alignment Check Exception \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 void INT_18() 
 {
     cli();
     printf ("Machine-Check Exception \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 void INT_19() 
 {
     cli();
     printf ("SIMD Floating-Point Exception \n");
-    halt(KERNEL_STACK_OF);
+    halt(HALT_EXCEPTION);
 	while(1);
 }
 
