@@ -7,7 +7,7 @@
 #include "lib.h"
 #include "rtc.h"
 
-#define ARG_NUM 100
+#define ARG_NUM 5
 #define FNAME_SIZE 32
 #define BUFSIZE 4
 #define FOUR_BYTE 4

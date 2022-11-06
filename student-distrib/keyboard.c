@@ -344,7 +344,7 @@ int terminal_write(int32_t fd, const void* buf, int32_t nbytes){
         // }
         putc(termi_buf[i]);
         byte_write += 1;
-        termi_buf[i] = '\0'; // clear the buffer
+        //termi_buf[i] = '\0'; // clear the buffer
         update_cursor(0); // update the cursor by one place 
     
     }

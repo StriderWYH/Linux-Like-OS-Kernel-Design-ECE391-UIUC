@@ -4,7 +4,10 @@
 systemcall_wrapper:
     pushl %esi
     pushl %edi
+    pushl %ebp
+    pushl %esp
 
+    pushfl
 
     cmpl $1,%eax
     jl invalid
@@ -25,9 +28,15 @@ invalid:
     movl $-1,%eax
 Done:
 
+    popfl
+    popl %esp
+    popl %ebp
     popl %edi
     popl %esi
+
     IRET
+
+        
 
 systemcall_table:
     .long	halt
@@ -36,5 +45,6 @@ systemcall_table:
     .long	write
     .long	open
     .long   close
+
 
     

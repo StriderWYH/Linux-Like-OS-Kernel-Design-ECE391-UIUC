@@ -91,6 +91,12 @@ int32_t execute(const uint8_t* command) {
         fname[j] = '\0';
     }
     j = 0;
+
+    for(z = 0; z < ARG_NUM; z++){
+        arg[z] = '\0';
+    }
+    z = 0;
+
     cli();
     if(!command){  // check whether it is null
         return -1;
@@ -171,7 +177,10 @@ int32_t execute(const uint8_t* command) {
         parent_pcb = (pcb_t*)(SIZE_OF_8MB - index * SIZE_OF_8KB);    // parent is the last process
         new_pcb->parent_pid = parent_pcb->pid;     // copy the parent pid
     }
-    strcpy((int8_t*)new_pcb->args,(int8_t*)arg);
+    //strcpy((int8_t*)new_pcb->args,(int8_t*)arg);
+    for(z = 0; z < ARG_NUM; z++){
+        new_pcb->args[z] = arg[z];
+    }
     new_pcb->pid = index;
 
     // fill up the stdin and stdout file
@@ -385,7 +394,7 @@ int32_t open( const uint8_t* filename){
     default:
         return -1;
     }
-    result = pcb->file_array[fd].optable_ptr->open(fd);
+    result = pcb->file_array[fd].optable_ptr->open(filename);
     //call the open function
     return fd;
 }
