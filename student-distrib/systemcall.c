@@ -249,9 +249,9 @@ int32_t getargs(uint8_t* buf, int32_t nbytes){
     if((nbytes == 0)){
         return -1;
     }
-    // if(nbytes != strlen((const int8_t*)pcb->args)){
-    //     return -1;
-    // }
+    if(pcb->args[0] == '\0'){
+        return -1;
+    }
 
     for(i = 0; i < nbytes; i++){
         buf[i] = pcb->args[i];
@@ -443,7 +443,7 @@ int32_t open( const uint8_t* filename){
  *                      -1 - the fd is out of rage or equal to 0 or 1 or close a not using file
  */
 int32_t close(int32_t fd){
-    puts("close called \n");
+    //puts("close called \n");
     int result;
     int esp;
     // should not close the stdin and stdout, or the fd is out of range
