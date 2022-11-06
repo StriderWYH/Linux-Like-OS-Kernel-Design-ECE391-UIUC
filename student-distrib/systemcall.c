@@ -61,12 +61,17 @@ int32_t current_pid = -1;
 
 
 
+/*
+ *  execute
+ *  DESCRIPTION: execute a file
+ *  INPUTS:            command: the command to read                
+ *  OUTPUTS:            none
 
-// int32_t (*file_table[3][4])() = {
-// {RTC_read, RTC_write, RTC_open, RTC_close},
-// {dir_read, dir_write, dir_open, dir_close},
-// {file_read, file_write, file_open, file_close}
-// };
+ *  SIDEEFFECT: NONE
+ *  RETURN VALUE:       0 normal success 
+ *                      -1 wrong
+ */
+
 int32_t execute(const uint8_t* command) {
     //puts("executes called \n");
     // 1. parse arguments
@@ -239,6 +244,16 @@ int32_t execute(const uint8_t* command) {
     );
     return 0;
 }
+/*
+ *  getargs
+ *  DESCRIPTION: get argument from the pcb args
+ *  INPUTS:             buf to fill the args; nbytes: number of bytes to read                
+ *  OUTPUTS:            none
+
+ *  SIDEEFFECT: NONE
+ *  RETURN VALUE:       0 normal success
+ *                      -1 wrong
+ */
 
 int32_t getargs(uint8_t* buf, int32_t nbytes){
     int i = 0;
@@ -252,9 +267,9 @@ int32_t getargs(uint8_t* buf, int32_t nbytes){
     if((nbytes == 0)){
         return -1;
     }
-    // if(nbytes != strlen((const int8_t*)pcb->args)){
-    //     return -1;
-    // }
+    if(pcb->args[0] == '\0'){
+        return -1;
+    }
 
     for(i = 0; i < nbytes; i++){
         buf[i] = pcb->args[i];
