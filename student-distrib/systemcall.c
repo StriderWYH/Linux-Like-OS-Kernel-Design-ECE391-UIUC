@@ -401,11 +401,25 @@ int32_t open( const uint8_t* filename){
     // check whether the fdarray is full 
     if(fd == 8) return -1;
     
+    if(!strncmp((int8_t*)filename, (int8_t*)"stdin",5)){
+        pcb->file_array[0].optable_ptr = &stdin_op;
+        pcb->file_array[0].flags = 1;
+        return 0;
+    }
+    if(!strncmp((int8_t*)filename, (int8_t*)"stdout",6)){
+        pcb->file_array[1].optable_ptr = &stdout_op;
+        pcb->file_array[1].flags = 1;
+        return 1;
+    }
+
+
     // if the filename(other than stdin or stdout) doesn't exist, return -1
     result = read_dentry_by_name(filename,&cur_dentry);
     if(result == -1) return -1;
     // if valid, update the type
     cur_file_type =  cur_dentry.filetype;
+
+    
 
     // based on the type of the file, assign corresponding element to the current fd.
     switch (cur_file_type)
@@ -499,7 +513,6 @@ int32_t write(int32_t fd, const void* buf, int32_t nbytes)
  */
 int32_t read(int32_t fd, void* buf, int32_t nbytes)
 {
-    //puts("read called \n");
     int esp;
     asm("movl %%esp, %0" : "=r"(esp) :);    //get esp from the stack
     pcb_t* pcb = (pcb_t*)(esp & 0x7FE000);  //0x7FE000 is the PCB_mask
@@ -511,6 +524,7 @@ int32_t read(int32_t fd, void* buf, int32_t nbytes)
     {
         return -1;          //check the flag of the pcb
     }
+    //puts("successfully called all");
     return pcb->file_array[fd].optable_ptr->read(fd,buf,nbytes);        //call the correspoding read function 
 }
 

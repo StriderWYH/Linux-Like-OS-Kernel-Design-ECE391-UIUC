@@ -501,19 +501,22 @@ void systemcall_rtc_test()
  */
 void systemcall_terminal_test()
 {
-	int32_t fd = open((uint8_t*)"stdin");
-	int32_t result = 0;
+	//int esp;
+	//int32_t fd = 0;
+	open((uint8_t*)"stdin");
+	//int32_t result = 0;
+	char buf[100];
 	terminal_open(NULL);
-	
+	//printf("%d",fd);
 	while(1){
 		int systemcall_terminal_flag;
 		while(!keyboard_flag); 
-        systemcall_terminal_flag = read(fd,keyboard_buffer,global_keyboard_index);		//use systemcall_read to do the terminal_read
-        write(fd,terminal_buffer,systemcall_terminal_flag);			//use systemcall_write to do the terminal_write
+        systemcall_terminal_flag = read(0,buf,0);		//use systemcall_read to do the terminal_read
+        write(0,buf,systemcall_terminal_flag);			//use systemcall_write to do the terminal_write
 		//terminal_read();
 	}    
 	terminal_close(0);
-	result = close(fd);
+
 }
 
 
@@ -677,7 +680,7 @@ void r_file_offset(){
 	printf("\n");
 	printf("The correct offset after the first read should be 50 \n");
 	printf("Now the  offset after the first read is : %d \n", offset_cur);
-	printf("all success");
+	printf("all success\n");
 	return;
 }
 
@@ -752,13 +755,13 @@ void launch_tests(){
 	//file_read_testlf();
 
 	/********************************checkpoint 3 test*************************************/
-	//execute_test();
+	
 	//systemcall_terminal_test();
-	systemcall_rtc_test();
+	//systemcall_rtc_test();
 	//r_file_offset();
 	//r_w_test_smfile();
 	//oc_test();
 	//read_dir();
-	//print_out_all_files();
+	
 	// launch your tests here
 }

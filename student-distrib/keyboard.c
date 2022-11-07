@@ -266,6 +266,7 @@ int terminal_close(int32_t fd){
  * output: bytes that is successfully read
  */
 int terminal_read(int32_t fd, void* buf, int32_t nbytes){
+    //puts("terminal read called");
     int byte_read;
     int i = 0;
     char * kb_buf =  (char*)buf;
