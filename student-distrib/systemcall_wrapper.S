@@ -48,5 +48,3 @@ systemcall_table:
     .long	open
     .long   close
     .long   getargs
-
-    
