@@ -270,6 +270,7 @@ int terminal_read(int32_t fd, void* buf, int32_t nbytes){
     int byte_read;
     int i = 0;
     char * kb_buf =  (char*)buf;
+    if (fd!=0) {return -1;}
     //printf("%d",global_keyboard_index);
     byte_read = 0;
     if(strlen(keyboard_buffer) >= 128) return -1;
@@ -327,6 +328,7 @@ int terminal_write(int32_t fd, const void* buf, int32_t nbytes){
     int i = 0;
     byte_write = 0;
     char * termi_buf = (char *)buf;
+    if (fd!=1) {return -1;}
     //if (nbytes > 80)  scrolling(1);
     //puts("this is output:");
     //putc(termi_buf[2]);
